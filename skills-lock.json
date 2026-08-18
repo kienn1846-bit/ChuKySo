@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "skills": {
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/find-skills/SKILL.md",
+      "computedHash": "b146008599c31057cef1c145774cea5d5afb30e8f43fa802e47a4b461419aaaf"
+    },
+    "frontend-design": {
+      "source": "local",
+      "sourceType": "project",
+      "skillPath": ".agents/skills/frontend-design/SKILL.md"
+    },
+    "crypto-system-design": {
+      "source": "local",
+      "sourceType": "project",
+      "skillPath": ".agents/skills/crypto-system-design/SKILL.md"
+    }
+  }
+}
