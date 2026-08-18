@@ -10,6 +10,11 @@ import {
   Eye,
   Sliders,
   ExternalLink,
+  PenTool,
+  Sparkles,
+  Calendar,
+  Layers,
+  Palette,
 } from 'lucide-react';
 import {
   DigitalCertificate,
@@ -26,6 +31,7 @@ import {
   createSignedPdfFromText,
 } from '../../services/pdf-service';
 import { downloadFile } from '../../services/storage-service';
+import { SignaturePadModal } from './SignaturePadModal';
 
 interface SignDocumentViewProps {
   certificates: DigitalCertificate[];
@@ -34,7 +40,7 @@ interface SignDocumentViewProps {
   setActiveCertId: (id: string) => void;
   onAddHistory: (item: SigningHistoryItem) => void;
   onNotify: (msg: string, type?: 'success' | 'danger' | 'info') => void;
-  onGoToVerifyWithPackage?: (pkg: SignedDocumentPackage, file?: File | null) => void;
+  onGoToVerifyWithPackage?: (pkg: SignedDocumentPackage, file?: File | null, textContent?: string) => void;
 }
 
 export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
@@ -49,24 +55,35 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
   const [signMode, setSignMode] = useState<'pdf' | 'file' | 'text'>('pdf');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [textContent, setTextContent] = useState<string>(
-    'CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM\nĐộc lập - Tự do - Hạnh phúc\n\nGIẤY XÁC NHẬN HOÀN THÀNH BÀI TẬP LỚN MÔN AN TOÀN THÔNG TIN\nKính gửi: Hội đồng Chấm thi Khoa Công nghệ Thông tin\nSinh viên thực hiện đã hoàn thành toàn bộ chương trình thực nghiệm hệ mật ElGamal và đóng dấu điện tử xác thực văn bản.'
+    'CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM\nĐộc lập - Tự do - Hạnh phúc\n\nGIẤY XÁC NHẬN HOÀN THÀNH BÀI TẬP LỚN MÔN AN TOÀN THÔNG TIN\nKính gửi: Hội đồng Chấm thi Khoa Công nghệ Thông tin - Đại học Công nghiệp Hà Nội\nSinh viên thực hiện đã hoàn thành toàn bộ chương trình thực nghiệm hệ mật ElGamal và đóng dấu điện tử xác thực văn bản.'
   );
+
+  // Active certificate and key
+  const activeCert = certificates.find((c) => c.id === activeCertId) || certificates[0];
+  const activeKeyPair = activeCert ? keyPairs[activeCert.id] : undefined;
 
   const [stampConfig, setStampConfig] = useState<VisualStampConfig>({
     enabled: true,
-    signerName: '',
-    organization: '',
+    signerName: activeCert ? activeCert.subject.commonName : 'Nguyễn Văn A',
+    signerTitle: 'Giảng viên / Cán bộ',
+    organization: activeCert ? activeCert.subject.organization : 'Đại học Công nghiệp Hà Nội',
+    department: 'Khoa Công nghệ Thông tin',
     location: 'Hà Nội',
-    signReason: 'Xác nhận tính toàn vẹn và phê duyệt nội dung',
+    signReason: '',
     dateString: new Date().toLocaleString('vi-VN'),
+    validFromDate: activeCert ? new Date(activeCert.validFrom).toLocaleDateString('vi-VN') : '18/08/2026',
+    validToDate: activeCert ? new Date(activeCert.validTo).toLocaleDateString('vi-VN') : '18/08/2029',
     pageNumber: 1,
     xPercent: 65,
     yPercent: 12,
-    color: 'emerald',
-    showQrCode: true,
-    style: 'modern-badge',
+    color: 'blue',
+    showQrCode: false,
+    style: 'handwritten-stamp',
+    backgroundStyle: 'white',
+    signatureType: 'draw',
   });
 
+  const [isSigModalOpen, setIsSigModalOpen] = useState(false);
   const [stampPreviewUrl, setStampPreviewUrl] = useState<string>('');
   const [isSigning, setIsSigning] = useState(false);
   const [signedResult, setSignedResult] = useState<{
@@ -78,10 +95,6 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Active certificate and key
-  const activeCert = certificates.find((c) => c.id === activeCertId) || certificates[0];
-  const activeKeyPair = activeCert ? keyPairs[activeCert.id] : undefined;
-
   // Synchronize signer name with active cert if empty
   useEffect(() => {
     if (activeCert) {
@@ -89,6 +102,9 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
         ...prev,
         signerName: activeCert.subject.commonName,
         organization: activeCert.subject.organization,
+        department: activeCert.subject.department || 'Khoa Công nghệ Thông tin',
+        validFromDate: new Date(activeCert.validFrom).toLocaleDateString('vi-VN'),
+        validToDate: new Date(activeCert.validTo).toLocaleDateString('vi-VN'),
       }));
     }
   }, [activeCertId, activeCert]);
@@ -419,55 +435,95 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
           <div className="card">
             <div className="card-header">
               <h3 className="card-title">
-                <Sliders size={18} color="var(--status-success)" />
-                <span>Tuỳ Chỉnh Con Dấu Chữ Ký Số (Visual e-Seal)</span>
+                <Sliders size={18} color="var(--accent-blue)" />
+                <span>Mẫu Chữ Ký Số & Con Dấu Điện Tử</span>
               </h3>
-              <span className="badge badge-success">Con Dấu Điện Tử</span>
+              <span className="badge badge-cyan">Chuẩn CKS Thật</span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* Main Studio Open Button */}
+              <button
+                type="button"
+                className="btn btn-primary"
+                style={{ width: '100%', justifyContent: 'center', padding: '10px 16px', fontWeight: 600 }}
+                onClick={() => setIsSigModalOpen(true)}
+              >
+                <PenTool size={16} />
+                <span>✍️ Mở Signature Studio (Vẽ / Tải ảnh chữ ký tay & Đổi thông tin)</span>
+              </button>
+
+              {/* Quick Settings Grid */}
               <div className="grid-2" style={{ gap: '10px' }}>
                 <div>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Màu con dấu:</label>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Màu mực & viền con dấu:</label>
                   <select
                     className="form-select"
                     style={{ padding: '6px 10px', fontSize: '0.84rem' }}
                     value={stampConfig.color}
                     onChange={(e) => setStampConfig({ ...stampConfig, color: e.target.value as any })}
                   >
-                    <option value="emerald">Xanh lục (Emerald Trust - Chuẩn)</option>
-                    <option value="blue">Xanh lam (Corporate Blue)</option>
-                    <option value="crimson">Đỏ truyền thống (Official Red)</option>
-                    <option value="amber">Vàng cam (Amber)</option>
-                    <option value="slate">Xám đen (Dark Slate)</option>
+                    <option value="blue">Xanh chuẩn CKS (Corporate Blue - Viettel/VNPT)</option>
+                    <option value="crimson">Đỏ công vụ (Official Red - Chuẩn văn bản)</option>
+                    <option value="emerald">Xanh lục bảo mật (Emerald Trust)</option>
+                    <option value="slate">Đen than (Dark Slate)</option>
                   </select>
                 </div>
 
-                {signMode === 'pdf' && (
-                  <div>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>Trang đóng dấu:</label>
-                    <input
-                      type="number"
-                      className="form-input"
-                      style={{ padding: '6px 10px', fontSize: '0.84rem' }}
-                      min={1}
-                      value={stampConfig.pageNumber}
-                      onChange={(e) => setStampConfig({ ...stampConfig, pageNumber: parseInt(e.target.value) || 1 })}
-                    />
-                  </div>
-                )}
+                <div>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Kiểu nền con dấu:</label>
+                  <select
+                    className="form-select"
+                    style={{ padding: '6px 10px', fontSize: '0.84rem' }}
+                    value={stampConfig.backgroundStyle || 'white'}
+                    onChange={(e) => setStampConfig({ ...stampConfig, backgroundStyle: e.target.value as any })}
+                  >
+                    <option value="white">Nền trắng tinh chuẩn văn bản (White)</option>
+                    <option value="transparent">Nền trong suốt (Transparent)</option>
+                    <option value="tinted">Nền màu nhẹ (Light Tinted)</option>
+                  </select>
+                </div>
               </div>
 
-              <div className="form-group" style={{ marginBottom: '8px' }}>
-                <label className="form-label" style={{ fontSize: '0.78rem' }}>Lý do ký:</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  style={{ padding: '6px 10px', fontSize: '0.84rem' }}
-                  value={stampConfig.signReason}
-                  onChange={(e) => setStampConfig({ ...stampConfig, signReason: e.target.value })}
-                />
+              <div className="grid-2" style={{ gap: '10px' }}>
+                <div>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Hiệu lực từ (Validate From):</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    style={{ padding: '6px 10px', fontSize: '0.84rem' }}
+                    value={stampConfig.validFromDate || '18/08/2026'}
+                    onChange={(e) => setStampConfig({ ...stampConfig, validFromDate: e.target.value })}
+                    placeholder="DD/MM/YYYY"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Hiệu lực đến (Validate To):</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    style={{ padding: '6px 10px', fontSize: '0.84rem' }}
+                    value={stampConfig.validToDate || '18/08/2029'}
+                    onChange={(e) => setStampConfig({ ...stampConfig, validToDate: e.target.value })}
+                    placeholder="DD/MM/YYYY"
+                  />
+                </div>
               </div>
+
+              {signMode === 'pdf' && (
+                <div>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Trang đóng dấu trên PDF:</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    style={{ padding: '6px 10px', fontSize: '0.84rem' }}
+                    min={1}
+                    value={stampConfig.pageNumber}
+                    onChange={(e) => setStampConfig({ ...stampConfig, pageNumber: parseInt(e.target.value) || 1 })}
+                  />
+                </div>
+              )}
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.82rem' }}>
@@ -476,35 +532,54 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
                     checked={stampConfig.showQrCode}
                     onChange={(e) => setStampConfig({ ...stampConfig, showQrCode: e.target.checked })}
                   />
-                  <span>Đính kèm mã QR tra cứu tính toàn vẹn</span>
+                  <span>Đính kèm mã QR tra cứu tính toàn vẹn chữ ký</span>
                 </label>
               </div>
 
               {/* Stamp Preview Card */}
-              <div style={{ marginTop: '8px' }}>
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                  Xem trước mẫu con dấu điện tử sẽ đóng vào văn bản:
+              <div style={{ marginTop: '4px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-main)', fontWeight: 600 }}>
+                    Xem trước mẫu con dấu điện tử (Live Preview):
+                  </span>
+                  {stampConfig.handwrittenSignatureUrl && (
+                    <span className="badge badge-success" style={{ fontSize: '0.7rem' }}>
+                      ✓ Đã có chữ ký tay
+                    </span>
+                  )}
                 </div>
+
                 {stampPreviewUrl && (
                   <div
                     style={{
-                      background: 'var(--bg-input)',
-                      padding: '10px',
+                      background: '#f8fafc',
+                      padding: '14px',
                       borderRadius: '8px',
                       textAlign: 'center',
                       border: '1px solid var(--border-subtle)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
                     }}
                   >
                     <img
                       src={stampPreviewUrl}
                       alt="Visual Stamp Preview"
-                      style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px' }}
+                      style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px', display: 'inline-block' }}
                     />
                   </div>
                 )}
               </div>
             </div>
           </div>
+
+          {/* Signature Studio Modal */}
+          <SignaturePadModal
+            isOpen={isSigModalOpen}
+            onClose={() => setIsSigModalOpen(false)}
+            stampConfig={stampConfig}
+            setStampConfig={setStampConfig}
+            activeCert={activeCert}
+            onNotify={onNotify}
+          />
 
           {/* Signed Output Result Card */}
           {signedResult && (
@@ -622,7 +697,11 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
                     <button
                       className="btn btn-outline"
                       onClick={() =>
-                        onGoToVerifyWithPackage(signedResult.packageData, selectedFile)
+                        onGoToVerifyWithPackage(
+                          signedResult.packageData,
+                          selectedFile,
+                          signMode === 'text' ? textContent : undefined
+                        )
                       }
                     >
                       <Eye size={16} />

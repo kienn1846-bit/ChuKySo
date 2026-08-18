@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   SearchCheck,
   Upload,
@@ -33,6 +33,7 @@ interface VerifySignatureViewProps {
   rootCert: DigitalCertificate;
   preloadedPackage?: SignedDocumentPackage | null;
   preloadedFile?: File | null;
+  preloadedText?: string;
   onNotify: (msg: string, type?: 'success' | 'danger' | 'info') => void;
 }
 
@@ -40,17 +41,35 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
   rootCert,
   preloadedPackage,
   preloadedFile,
+  preloadedText,
   onNotify,
 }) => {
   const [docFile, setDocFile] = useState<File | null>(preloadedFile || null);
   const [sigFile, setSigFile] = useState<File | null>(null);
   const [sigPackage, setSigPackage] = useState<SignedDocumentPackage | null>(preloadedPackage || null);
-  const [manualText, setManualText] = useState<string>('');
+  const [manualText, setManualText] = useState<string>(preloadedText || '');
 
-  const [verifyMode, setVerifyMode] = useState<'package' | 'manual'>('package');
+  const [verifyMode, setVerifyMode] = useState<'package' | 'manual'>(
+    preloadedText !== undefined ? 'manual' : 'package'
+  );
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
   const [showMathDetails, setShowMathDetails] = useState(true);
+
+  // Sync props when user clicks "Xác thực ngay" from signing tab
+  useEffect(() => {
+    if (preloadedPackage) {
+      setSigPackage(preloadedPackage);
+      setVerificationResult(null);
+      if (preloadedText !== undefined) {
+        setManualText(preloadedText);
+        setVerifyMode('manual');
+      } else if (preloadedFile) {
+        setDocFile(preloadedFile);
+        setVerifyMode('package');
+      }
+    }
+  }, [preloadedPackage, preloadedFile, preloadedText]);
 
   const docInputRef = useRef<HTMLInputElement>(null);
   const sigInputRef = useRef<HTMLInputElement>(null);

@@ -30,8 +30,8 @@ export const NewCertificateModal: React.FC<NewCertificateModalProps> = ({
   onNotify,
 }) => {
   const [commonName, setCommonName] = useState('');
-  const [organization, setOrganization] = useState('Đại Học Quốc Gia');
-  const [department, setDepartment] = useState('Khoa Công Nghệ Thông Tin');
+  const [organization, setOrganization] = useState('Đại học Công nghiệp Hà Nội');
+  const [department, setDepartment] = useState('Khoa Công nghệ Thông tin');
   const [email, setEmail] = useState('');
   const [studentId, setStudentId] = useState('');
   const [bitLength, setBitLength] = useState<512 | 1024 | 2048>(1024);

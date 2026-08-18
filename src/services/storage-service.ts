@@ -12,6 +12,7 @@ import { createRootCA, issueCertificate } from '../crypto/pki';
 import { generateElGamalKeyPair } from '../crypto/elgamal';
 
 const STORAGE_KEYS = {
+  VERSION: 'signwcert_storage_version',
   ROOT_CA_CERT: 'signwcert_root_ca_cert',
   ROOT_CA_KEYPAIR: 'signwcert_root_ca_keypair',
   CERTIFICATES: 'signwcert_certificates',
@@ -19,6 +20,8 @@ const STORAGE_KEYS = {
   SIGNING_HISTORY: 'signwcert_signing_history',
   ACTIVE_CERT_ID: 'signwcert_active_cert_id',
 };
+
+const CURRENT_STORAGE_VERSION = 'v5_haui_nguyen_van_a_seal';
 
 export interface AppStoreData {
   rootCACert: DigitalCertificate;
@@ -33,6 +36,18 @@ export interface AppStoreData {
  * Initialize storage with exactly 1 User Certificate & Root CA
  */
 export function initializeStorage(): AppStoreData {
+  const version = localStorage.getItem(STORAGE_KEYS.VERSION);
+  if (version !== CURRENT_STORAGE_VERSION) {
+    // Clear legacy storage with previous demo user
+    localStorage.removeItem(STORAGE_KEYS.ROOT_CA_CERT);
+    localStorage.removeItem(STORAGE_KEYS.ROOT_CA_KEYPAIR);
+    localStorage.removeItem(STORAGE_KEYS.CERTIFICATES);
+    localStorage.removeItem(STORAGE_KEYS.KEYPAIRS);
+    localStorage.removeItem(STORAGE_KEYS.SIGNING_HISTORY);
+    localStorage.removeItem(STORAGE_KEYS.ACTIVE_CERT_ID);
+    localStorage.setItem(STORAGE_KEYS.VERSION, CURRENT_STORAGE_VERSION);
+  }
+
   const existingRootCert = localStorage.getItem(STORAGE_KEYS.ROOT_CA_CERT);
   const existingRootKey = localStorage.getItem(STORAGE_KEYS.ROOT_CA_KEYPAIR);
 
@@ -64,8 +79,8 @@ export function initializeStorage(): AppStoreData {
 
   // First time initialization: Create Root CA
   const { rootCert, rootKeyPair } = createRootCA(
-    'Đại Học Quốc Gia - Trung Tâm Chứng Thực Gốc (Root CA)',
-    'Viện Công Nghệ Thông Tin & An Ninh Mạng'
+    'Đại học Công nghiệp Hà Nội - Trung Tâm Chứng Thực Gốc (HaUI Root CA)',
+    'Trường Đại học Công nghiệp Hà Nội'
   );
 
   const certificates: DigitalCertificate[] = [rootCert];
@@ -73,15 +88,15 @@ export function initializeStorage(): AppStoreData {
     [rootCert.id]: rootKeyPair,
   };
 
-  // Only 1 Single User Certificate: TS. Nguyễn Văn An
-  const user1KeyPair = generateElGamalKeyPair(1024, 'TS. Nguyễn Văn An - Key Pair', true);
+  // Default User Certificate: Nguyễn Văn A (Đại học Công nghiệp Hà Nội)
+  const user1KeyPair = generateElGamalKeyPair(2048, 'Nguyễn Văn A - Key Pair', true);
   const user1Cert = issueCertificate(
     {
-      commonName: 'TS. Nguyễn Văn An',
-      organization: 'Đại Học Quốc Gia',
-      department: 'Khoa An Toàn Thông Tin & Mật Mã',
-      email: 'an.nguyen@fit.edu.vn',
-      studentId: 'GV-2018-092',
+      commonName: 'Nguyễn Văn A',
+      organization: 'Đại học Công nghiệp Hà Nội',
+      department: 'Khoa Công nghệ Thông tin',
+      email: 'nguyenvana@haui.edu.vn',
+      studentId: 'HaUI-2024-001',
       country: 'VN',
     },
     user1KeyPair.publicKey,

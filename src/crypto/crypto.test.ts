@@ -11,7 +11,13 @@ import {
   millerRabin,
   PRESET_PRIMES,
 } from './bigint-utils';
-import { generateElGamalKeyPair, signElGamal, verifyElGamal } from './elgamal';
+import {
+  generateElGamalKeyPair,
+  signElGamal,
+  verifyElGamal,
+  elgamal_encrypt,
+  elgamal_decrypt,
+} from './elgamal';
 import { hashString } from './hash';
 
 export async function runCryptoSelfTests(): Promise<{
@@ -162,6 +168,22 @@ export async function runCryptoSelfTests(): Promise<{
       testName: 'Academic Attack Demo: Reused k Vulnerability Check',
       passed: true,
       message: 'Reused k creates identical signature component r, allowing algebraic key recovery.',
+      durationMs: performance.now() - start,
+    });
+  }
+
+  // Test 7: ElGamal Encryption and Decryption (Student Coursework Test)
+  {
+    const start = performance.now();
+    const keyPair = generateElGamalKeyPair(16, 'Student Enc Test', false);
+    const message = 'HAUI';
+    const encResult = elgamal_encrypt(message, keyPair.publicKey);
+    const decResult = elgamal_decrypt(encResult.ciphertext, keyPair.publicKey, keyPair.privateKey);
+    const passed = decResult.plaintext === message;
+    results.push({
+      testName: 'ElGamal Text Encryption & Decryption (HAUI Test)',
+      passed,
+      message: passed ? `Mã hóa và giải mã chuỗi "${message}" khớp 100%` : 'Failed ElGamal encryption/decryption',
       durationMs: performance.now() - start,
     });
   }

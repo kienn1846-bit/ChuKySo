@@ -17,103 +17,164 @@ import {
 /**
  * Generate a visual stamp image as Data URL using HTML Canvas
  */
+/**
+ * Helper to draw a natural blue cursive handwritten signature if none is drawn/uploaded
+ */
+function drawDefaultCursiveSignature(
+  ctx: CanvasRenderingContext2D,
+  name: string,
+  color = '#0044cc'
+) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = 2.2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  // Smooth elegant cursive loops matching the reference image
+  ctx.beginPath();
+  ctx.moveTo(85, 95);
+  ctx.bezierCurveTo(75, 45, 90, 20, 105, 32);
+  ctx.bezierCurveTo(120, 48, 98, 92, 90, 102);
+  ctx.bezierCurveTo(95, 60, 115, 48, 125, 68);
+  ctx.bezierCurveTo(135, 88, 115, 105, 130, 98);
+  ctx.bezierCurveTo(140, 78, 155, 38, 150, 68);
+  ctx.bezierCurveTo(145, 92, 160, 102, 172, 78);
+  ctx.bezierCurveTo(182, 62, 168, 100, 192, 88);
+  ctx.stroke();
+
+  // Draw natural flourish loop
+  ctx.beginPath();
+  ctx.arc(115, 55, 24, 0.2 * Math.PI, 1.8 * Math.PI);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+/**
+ * Format date/time matching authentic Adobe Digital Signature:
+ * Date: YYYY.MM.DD
+ * HH:mm:ss +07'00'
+ */
+function formatAdobeDate(dateString?: string): { dateStr: string; timeStr: string } {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const seconds = String(d.getSeconds()).padStart(2, '0');
+
+  return {
+    dateStr: `${year}.${month}.${day}`,
+    timeStr: `${hours}:${minutes}:${seconds} +07'00'`,
+  };
+}
+
+/**
+ * Generate a visual stamp image as Data URL using HTML Canvas
+ * Matches exact Adobe Acrobat / Standard Personal Digital Signature:
+ * - Left: Blue Handwritten Signature + Diagonal Stroke + Full Name (Nguyễn Văn A)
+ * - Right: "Digitally signed by Nguyễn Văn A \n Date: YYYY.MM.DD \n HH:mm:ss +07'00'"
+ * - Pure White Background / Transparent, NO QR, NO Reason
+ */
 export async function generateVisualStampDataUrl(
   stampConfig: VisualStampConfig,
   certificate: DigitalCertificate,
   signature: ElGamalSignature
 ): Promise<string> {
   const canvas = document.createElement('canvas');
-  canvas.width = 460;
-  canvas.height = 180;
+  // High resolution standard 2x canvas for razor-sharp rendering on PDF
+  const width = 480;
+  const height = 155;
+  canvas.width = width;
+  canvas.height = height;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Could not create canvas context');
 
-  // Color schemes
-  const colors = {
-    emerald: { border: '#059669', bg: '#ecfdf5', text: '#065f46', accent: '#10b981' },
-    blue: { border: '#2563eb', bg: '#eff6ff', text: '#1e40af', accent: '#3b82f6' },
-    crimson: { border: '#dc2626', bg: '#fef2f2', text: '#991b1b', accent: '#ef4444' },
-    amber: { border: '#d97706', bg: '#fffbeb', text: '#92400e', accent: '#f59e0b' },
-    slate: { border: '#475569', bg: '#f8fafc', text: '#1e293b', accent: '#64748b' },
-  };
-
-  const scheme = colors[stampConfig.color] || colors.emerald;
-
-  // Background
-  ctx.fillStyle = scheme.bg;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Border & Inner Border
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = scheme.border;
-  ctx.strokeRect(4, 4, canvas.width - 8, canvas.height - 8);
-
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = scheme.accent;
-  ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
-
-  // Header Title
-  ctx.fillStyle = scheme.border;
-  ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
-  ctx.fillText('✓ CHỨNG NHẬN KÝ SỐ ĐIỆN TỬ (ELGAMAL)', 18, 30);
-
-  // Signer Name
-  ctx.fillStyle = scheme.text;
-  ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
-  ctx.fillText(`Người ký: ${stampConfig.signerName || certificate.subject.commonName}`, 18, 56);
-
-  // Organization & Unit
-  ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
-  ctx.fillText(`Đơn vị: ${stampConfig.organization || certificate.subject.organization}`, 18, 76);
-
-  // Reason
-  if (stampConfig.signReason) {
-    ctx.fillText(`Lý do: ${stampConfig.signReason}`, 18, 96);
+  // 1. Background Fill: Clean pure white by default
+  if (stampConfig.backgroundStyle === 'transparent') {
+    ctx.clearRect(0, 0, width, height);
   } else {
-    ctx.fillText(`Lý do: Xác nhận tính toàn vẹn văn bản`, 18, 96);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
   }
 
-  // Date & Serial
-  ctx.font = '11px "JetBrains Mono", Consolas, monospace';
-  ctx.fillText(`Thời gian: ${stampConfig.dateString || new Date().toLocaleString('vi-VN')}`, 18, 118);
-  ctx.fillText(`Chứng thư: ${certificate.serialNumber}`, 18, 136);
+  const signerName = stampConfig.signerName || certificate.subject.commonName || 'Nguyễn Văn A';
+  const inkColor = stampConfig.color === 'crimson' ? '#dc2626' : '#0044cc';
 
-  // Thumbprint abbreviated
-  const shortThumb = certificate.thumbprint.slice(0, 23) + '...';
-  ctx.fillText(`Fingerprint: ${shortThumb}`, 18, 154);
+  // 2. Left Column: Handwritten Signature + Diagonal Baseline + Printed Name
+  const hasHandwritten = !!stampConfig.handwrittenSignatureUrl;
 
-  // Signature R snippet
-  const shortR = signature.r.slice(0, 16) + '...';
-  ctx.fillText(`Sig(r): ${shortR}`, 18, 170);
-
-  // QR Code on right side
-  if (stampConfig.showQrCode) {
-    const qrData = JSON.stringify({
-      sig: 'ElGamal-SignWCert',
-      serial: certificate.serialNumber,
-      signer: certificate.subject.commonName,
-      hash: signature.documentHash.slice(0, 16),
-      signedAt: stampConfig.dateString,
-    });
-
+  if (hasHandwritten && stampConfig.handwrittenSignatureUrl) {
     try {
-      const qrDataUrl = await QRCode.toDataURL(qrData, {
-        margin: 1,
-        width: 130,
-        color: { dark: scheme.border, light: '#ffffff' },
+      const sigImg = new Image();
+      sigImg.src = stampConfig.handwrittenSignatureUrl;
+      await new Promise((resolve, reject) => {
+        sigImg.onload = resolve;
+        sigImg.onerror = reject;
       });
 
-      const qrImg = new Image();
-      qrImg.src = qrDataUrl;
-      await new Promise((resolve) => {
-        qrImg.onload = resolve;
-      });
-
-      ctx.drawImage(qrImg, 320, 24, 126, 126);
+      const maxSigW = 150;
+      const maxSigH = 80;
+      let drawW = sigImg.width;
+      let drawH = sigImg.height;
+      if (drawW > maxSigW || drawH > maxSigH) {
+        const ratio = Math.min(maxSigW / drawW, maxSigH / drawH);
+        drawW = drawW * ratio;
+        drawH = drawH * ratio;
+      }
+      const sigX = 35 + (maxSigW - drawW) / 2;
+      const sigY = 12 + (maxSigH - drawH) / 2;
+      ctx.drawImage(sigImg, sigX, sigY, drawW, drawH);
     } catch {
-      // Ignore QR errors
+      drawDefaultCursiveSignature(ctx, signerName, inkColor);
     }
+  } else {
+    // Draw natural default blue cursive signature
+    drawDefaultCursiveSignature(ctx, signerName, inkColor);
   }
+
+  // Draw Diagonal Underline Slash Stroke underneath signature
+  ctx.strokeStyle = inkColor;
+  ctx.lineWidth = 1.8;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(25, 135);
+  ctx.lineTo(215, 60);
+  ctx.stroke();
+
+  // Print Signer Full Name centered below the slash line
+  ctx.fillStyle = '#000000';
+  ctx.font = '13px Arial, "Segoe UI", Roboto, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(signerName, 120, 142);
+
+  // 3. Right Column: Adobe Standard Text Block
+  const { dateStr, timeStr } = formatAdobeDate(stampConfig.dateString);
+  const rightX = 232;
+  let textY = 32;
+  const lineHeight = 28;
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#000000';
+  ctx.font = '500 20px Arial, "Segoe UI", Roboto, sans-serif';
+
+  // Line 1: Digitally signed
+  ctx.fillText('Digitally signed', rightX, textY);
+  textY += lineHeight;
+
+  // Line 2: by [Name]
+  ctx.fillText(`by ${signerName}`, rightX, textY);
+  textY += lineHeight;
+
+  // Line 3: Date: YYYY.MM.DD
+  ctx.fillText(`Date: ${dateStr}`, rightX, textY);
+  textY += lineHeight;
+
+  // Line 4: HH:mm:ss +07'00'
+  ctx.fillText(`${timeStr}`, rightX, textY);
 
   return canvas.toDataURL('image/png');
 }

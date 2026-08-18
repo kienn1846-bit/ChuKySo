@@ -12,12 +12,13 @@ import {
 } from '../types';
 import { generateElGamalKeyPair, signElGamal, verifyElGamal } from './elgamal';
 import { hashString, getThumbprint } from './hash';
+import { cryptoLogger } from '../services/crypto-logger';
 
 // Default Root CA Configuration
 export const DEFAULT_ROOT_CA_ISSUER: CertificateIssuer = {
-  commonName: 'Đại Học Quốc Gia - Trung Tâm Chứng Thực Số Gốc (Root CA)',
-  organization: 'Trung Tâm An Toàn Thông Tin & Mật Mã Học',
-  serialNumber: 'CA-ROOT-2026-0001',
+  commonName: 'Đại học Công nghiệp Hà Nội - Trung Tâm Chứng Thực Số Gốc (HaUI Root CA)',
+  organization: 'Trường Đại học Công nghiệp Hà Nội',
+  serialNumber: 'HAUI-ROOT-CA-001',
 };
 
 /**
@@ -155,6 +156,50 @@ export function issueCertificate(
     status: 'active',
     createdAt: validFrom,
   };
+
+  cryptoLogger.addLog({
+    category: 'pki-issue',
+    title: `Phát hành chứng thư số mới (PKI Certificate)`,
+    description: `Root CA ký số cấp chứng thư cho "${subject.commonName}" (${subject.organization})`,
+    actor: rootCACert.subject.commonName,
+    bitLength: userPublicKey.bitLength,
+    durationMs: 4,
+    steps: [
+      {
+        stepNumber: 1,
+        name: 'Đóng gói cấu trúc chứng thư X.509/ElGamal',
+        description: 'Tạo Subject, Issuer, Public Key, Validity Period, KeyUsage và gán Serial Number.',
+        variables: {
+          'Chủ thể (Subject)': `${subject.commonName} (${subject.email})`,
+          'Cơ quan cấp (Issuer)': rootCACert.subject.commonName,
+          'Serial Number': serialNumber,
+        },
+        status: 'success',
+      },
+      {
+        stepNumber: 2,
+        name: 'Băm toàn vẹn nội dung chứng thư',
+        description: 'Tính mã băm SHA-256 của payload chứng thư.',
+        formula: 'H(\\text{CertBody}) = \\text{SHA256}(\\text{Payload})',
+        variables: { 'Hash Hex': certHashHex, Thumbprint: thumbprint },
+        status: 'success',
+      },
+      {
+        stepNumber: 3,
+        name: 'Root CA ký số bảo chứng (CA Signature)',
+        description: 'Root CA sử dụng khóa bí mật ElGamal để ký lên mã băm chứng thư.',
+        formula: '(r_{ca}, s_{ca}) = \\text{Sign}_{CA}(H(\\text{CertBody}))',
+        variables: { 'CA Sig(r)': signature.r.substring(0, 24) + '...', 'CA Sig(s)': signature.s.substring(0, 24) + '...' },
+        status: 'success',
+      },
+    ],
+    rawSummary: {
+      serialNumber,
+      subjectName: subject.commonName,
+      issuerName: rootCACert.subject.commonName,
+      thumbprint,
+    },
+  });
 
   return certificate;
 }

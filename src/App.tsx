@@ -4,6 +4,7 @@ import { DashboardView } from './components/dashboard/DashboardView';
 import { SignDocumentView } from './components/sign/SignDocumentView';
 import { VerifySignatureView } from './components/verify/VerifySignatureView';
 import { CertificateManagerView } from './components/pki/CertificateManagerView';
+import { CryptoLogsView } from './components/logs/CryptoLogsView';
 import { ElGamalLabView } from './components/lab/ElGamalLabView';
 import { Toast, ToastMessage } from './components/common/Toast';
 import {
@@ -37,6 +38,7 @@ export const App: React.FC = () => {
   // Preloaded data for verification transition
   const [preloadedVerifyPkg, setPreloadedVerifyPkg] = useState<SignedDocumentPackage | null>(null);
   const [preloadedVerifyFile, setPreloadedVerifyFile] = useState<File | null>(null);
+  const [preloadedVerifyText, setPreloadedVerifyText] = useState<string | undefined>(undefined);
 
   // Toasts
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -116,9 +118,14 @@ export const App: React.FC = () => {
   };
 
   // Switch to verify view with preloaded package
-  const handleGoToVerifyWithPackage = (pkg: SignedDocumentPackage, file?: File | null) => {
+  const handleGoToVerifyWithPackage = (
+    pkg: SignedDocumentPackage,
+    file?: File | null,
+    text?: string
+  ) => {
     setPreloadedVerifyPkg(pkg);
     setPreloadedVerifyFile(file || null);
+    setPreloadedVerifyText(text);
     setActiveTab('verify');
     notify(`Đã chuyển gói chữ ký của "${pkg.fileName}" sang màn hình xác thực!`, 'info');
   };
@@ -174,6 +181,7 @@ export const App: React.FC = () => {
             rootCert={rootCert}
             preloadedPackage={preloadedVerifyPkg}
             preloadedFile={preloadedVerifyFile}
+            preloadedText={preloadedVerifyText}
             onNotify={notify}
           />
         )}
@@ -190,6 +198,10 @@ export const App: React.FC = () => {
             onUpdateStatus={handleUpdateStatus}
             onNotify={notify}
           />
+        )}
+
+        {activeTab === 'logs' && (
+          <CryptoLogsView onNotify={notify} />
         )}
 
         {activeTab === 'lab' && <ElGamalLabView />}

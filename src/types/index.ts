@@ -68,16 +68,23 @@ export interface DigitalCertificate {
 export interface VisualStampConfig {
   enabled: boolean;
   signerName: string;
+  signerTitle?: string;
   organization: string;
+  department?: string;
   location: string;
   signReason: string;
   dateString: string;
+  validFromDate?: string;
+  validToDate?: string;
   pageNumber: number;
   xPercent: number; // 0 - 100% relative to page width
   yPercent: number; // 0 - 100% relative to page height
-  color: 'emerald' | 'blue' | 'crimson' | 'amber' | 'slate';
+  color: 'crimson' | 'blue' | 'emerald' | 'amber' | 'slate';
   showQrCode: boolean;
-  style: 'modern-badge' | 'official-seal' | 'minimal-tag';
+  style: 'official-seal' | 'handwritten-stamp' | 'modern-badge' | 'minimal-tag';
+  backgroundStyle: 'white' | 'transparent' | 'tinted';
+  signatureType: 'draw' | 'upload' | 'calligraphy' | 'seal-only';
+  handwrittenSignatureUrl?: string;
 }
 
 export interface SignedDocumentPackage {
@@ -158,4 +165,27 @@ export interface SigningHistoryItem {
   signatureR: string;
   signatureS: string;
   status: 'valid' | 'revoked';
+}
+
+export interface CryptoLogStep {
+  stepNumber: number;
+  name: string;
+  description: string;
+  formula?: string;
+  mathExplanation?: string;
+  variables: Record<string, string>;
+  status: 'success' | 'warning' | 'info';
+}
+
+export interface CryptoLogEntry {
+  id: string;
+  timestamp: string;
+  category: 'keygen' | 'sign' | 'verify' | 'encrypt' | 'decrypt' | 'pki-issue' | 'selftest';
+  title: string;
+  description: string;
+  actor: string;
+  bitLength?: number;
+  durationMs: number;
+  steps: CryptoLogStep[];
+  rawSummary: Record<string, string>;
 }
