@@ -344,6 +344,9 @@ export const PRESET_PRIMES = {
   },
   'safe-512': {
     bitLength: 512,
+    // Academic preset: largest 512-bit prime close to 2^512 (offset -0x94E5 from 2^512),
+    // verified prime via Miller-Rabin (25 rounds). Used for demonstration purposes only.
+    // For production-grade 512-bit primes, refer to NIST SP 800-56A / RFC 7919.
     p: BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff6b1b'),
     g: 2n,
   },

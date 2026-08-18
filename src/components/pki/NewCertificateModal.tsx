@@ -62,7 +62,7 @@ export const NewCertificateModal: React.FC<NewCertificateModalProps> = ({
       };
 
       // 3. Issue certificate signed by Root CA
-      const newCert = issueCertificate(
+      const newCert = await issueCertificate(
         subject,
         userKeyPair.publicKey,
         rootKeyPair,

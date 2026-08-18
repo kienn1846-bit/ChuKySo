@@ -45,13 +45,16 @@ export const App: React.FC = () => {
 
   // Initialize Store on load
   useEffect(() => {
-    const data = initializeStorage();
-    setRootCert(data.rootCACert);
-    setRootKeyPair(data.rootCAKeyPair);
-    setCertificates(data.certificates);
-    setKeyPairs(data.keyPairs);
-    setSigningHistory(data.signingHistory);
-    setActiveCertIdState(data.activeCertId);
+    const init = async () => {
+      const data = await initializeStorage();
+      setRootCert(data.rootCACert);
+      setRootKeyPair(data.rootCAKeyPair);
+      setCertificates(data.certificates);
+      setKeyPairs(data.keyPairs);
+      setSigningHistory(data.signingHistory);
+      setActiveCertIdState(data.activeCertId);
+    };
+    init();
   }, []);
 
   // Sync theme attribute to HTML
@@ -104,9 +107,9 @@ export const App: React.FC = () => {
   };
 
   // Reset demo storage
-  const handleResetStorage = () => {
+  const handleResetStorage = async () => {
     if (window.confirm('Bạn có chắc chắn muốn khôi phục dữ liệu mẫu ban đầu của hệ thống?')) {
-      const data = resetStorage();
+      const data = await resetStorage();
       setRootCert(data.rootCACert);
       setRootKeyPair(data.rootCAKeyPair);
       setCertificates(data.certificates);

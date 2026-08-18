@@ -137,7 +137,7 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
       const mathResult = verifyElGamal(calculatedDocHash, sig, cert.publicKey);
 
       // 3. Layer 3: PKI Certificate Verification
-      const certResult = verifyCertificate(cert, rootCert.publicKey);
+      const certResult = await verifyCertificate(cert, rootCert.publicKey);
 
       const errors: string[] = [];
       const warnings: string[] = [];

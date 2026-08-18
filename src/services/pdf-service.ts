@@ -5,7 +5,6 @@
  */
 
 import { PDFDocument } from 'pdf-lib';
-import QRCode from 'qrcode';
 import {
   DigitalCertificate,
   ElGamalSignature,

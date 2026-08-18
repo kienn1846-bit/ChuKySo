@@ -1,6 +1,7 @@
 /**
  * PKI & Digital Certificate Authority (CA) Management
  * Implements X.509-like Digital Certificates with ElGamal Signatures
+ * All certificate hashing uses SHA-256 via Web Crypto API (async)
  */
 
 import {
@@ -23,11 +24,12 @@ export const DEFAULT_ROOT_CA_ISSUER: CertificateIssuer = {
 
 /**
  * Generate a Root Certificate Authority (Self-Signed)
+ * Uses real SHA-256 (Web Crypto API) for certificate body hashing
  */
-export function createRootCA(
+export async function createRootCA(
   commonName = DEFAULT_ROOT_CA_ISSUER.commonName,
   organization = DEFAULT_ROOT_CA_ISSUER.organization
-): { rootCert: DigitalCertificate; rootKeyPair: ElGamalKeyPair } {
+): Promise<{ rootCert: DigitalCertificate; rootKeyPair: ElGamalKeyPair }> {
   // Use 2048-bit safe prime for Root CA
   const rootKeyPair = generateElGamalKeyPair(2048, `${commonName} Key Pair`, true);
 
@@ -57,9 +59,9 @@ export function createRootCA(
     keyUsage: ['Certificate Authority', 'Digital Signature', 'CRL Sign', 'Key Encipherment'],
   });
 
-  // Hash certificate body
-  const thumbprint = getSyncThumbprint(certDataToHash);
-  const certHashHex = getSyncHashHex(certDataToHash);
+  // Hash certificate body with real SHA-256 (Web Crypto API)
+  const certHashHex = await hashString(certDataToHash, 'SHA-256');
+  const thumbprint = await getThumbprint(certDataToHash);
 
   // Self-sign with Root CA key
   const { signature } = signElGamal(certHashHex, rootKeyPair.publicKey, rootKeyPair.privateKey);
@@ -98,14 +100,15 @@ export function createRootCA(
 
 /**
  * Issue a new Digital Certificate for a User/Subject signed by Root CA
+ * Uses real SHA-256 (Web Crypto API) for certificate body hashing
  */
-export function issueCertificate(
+export async function issueCertificate(
   subject: CertificateSubject,
   userPublicKey: ElGamalPublicKey,
   rootCAKeyPair: ElGamalKeyPair,
   rootCACert: DigitalCertificate,
   validityYears = 2
-): DigitalCertificate {
+): Promise<DigitalCertificate> {
   const now = new Date();
   const validFrom = now.toISOString();
   const validTo = new Date(now.getFullYear() + validityYears, now.getMonth(), now.getDate()).toISOString();
@@ -127,8 +130,9 @@ export function issueCertificate(
     keyUsage: ['Digital Signature', 'Non-Repudiation', 'Document Signing'],
   });
 
-  const thumbprint = getSyncThumbprint(certDataToHash);
-  const certHashHex = getSyncHashHex(certDataToHash);
+  // Hash certificate body with real SHA-256 (Web Crypto API)
+  const certHashHex = await hashString(certDataToHash, 'SHA-256');
+  const thumbprint = await getThumbprint(certDataToHash);
 
   // Sign by Root CA
   const { signature } = signElGamal(certHashHex, rootCAKeyPair.publicKey, rootCAKeyPair.privateKey);
@@ -178,8 +182,8 @@ export function issueCertificate(
       },
       {
         stepNumber: 2,
-        name: 'Băm toàn vẹn nội dung chứng thư',
-        description: 'Tính mã băm SHA-256 của payload chứng thư.',
+        name: 'Băm toàn vẹn nội dung chứng thư (SHA-256)',
+        description: 'Tính mã băm SHA-256 thực sự (Web Crypto API) của payload chứng thư.',
         formula: 'H(\\text{CertBody}) = \\text{SHA256}(\\text{Payload})',
         variables: { 'Hash Hex': certHashHex, Thumbprint: thumbprint },
         status: 'success',
@@ -206,17 +210,18 @@ export function issueCertificate(
 
 /**
  * Verify a Digital Certificate against Root CA and Validity Period
+ * Uses real SHA-256 (Web Crypto API) for re-hashing certificate body
  */
-export function verifyCertificate(
+export async function verifyCertificate(
   cert: DigitalCertificate,
   rootCAPublicKey: ElGamalPublicKey
-): {
+): Promise<{
   isValid: boolean;
   isExpired: boolean;
   isSignatureValid: boolean;
   isRevoked: boolean;
   reason?: string;
-} {
+}> {
   // 1. Check revocation
   if (cert.status === 'revoked') {
     return {
@@ -256,7 +261,8 @@ export function verifyCertificate(
     keyUsage: cert.keyUsage,
   });
 
-  const certHashHex = getSyncHashHex(certDataToHash);
+  // Hash with real SHA-256 (Web Crypto API)
+  const certHashHex = await hashString(certDataToHash, 'SHA-256');
 
   const mathVerify = verifyElGamal(
     certHashHex,
@@ -286,29 +292,4 @@ export function verifyCertificate(
     isSignatureValid: true,
     isRevoked: false,
   };
-}
-
-// Synchronous simple hash helper for canonical strings
-function getSyncHashHex(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash |= 0;
-  }
-  const hex1 = Math.abs(hash).toString(16).padStart(8, '0');
-  
-  let hash2 = 5381;
-  for (let i = str.length - 1; i >= 0; i--) {
-    hash2 = (hash2 * 33) ^ str.charCodeAt(i);
-    hash2 |= 0;
-  }
-  const hex2 = Math.abs(hash2).toString(16).padStart(8, '0');
-  
-  return (hex1 + hex2 + hex1 + hex2).repeat(2);
-}
-
-function getSyncThumbprint(str: string): string {
-  const hex = getSyncHashHex(str).slice(0, 40).toUpperCase();
-  return hex.match(/.{1,2}/g)?.join(':') || hex;
 }

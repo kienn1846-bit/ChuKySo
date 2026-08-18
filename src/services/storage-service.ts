@@ -35,7 +35,7 @@ export interface AppStoreData {
 /**
  * Initialize storage with exactly 1 User Certificate & Root CA
  */
-export function initializeStorage(): AppStoreData {
+export async function initializeStorage(): Promise<AppStoreData> {
   const version = localStorage.getItem(STORAGE_KEYS.VERSION);
   if (version !== CURRENT_STORAGE_VERSION) {
     // Clear legacy storage with previous demo user
@@ -78,7 +78,7 @@ export function initializeStorage(): AppStoreData {
   }
 
   // First time initialization: Create Root CA
-  const { rootCert, rootKeyPair } = createRootCA(
+  const { rootCert, rootKeyPair } = await createRootCA(
     'Đại học Công nghiệp Hà Nội - Trung Tâm Chứng Thực Gốc (HaUI Root CA)',
     'Trường Đại học Công nghiệp Hà Nội'
   );
@@ -90,7 +90,7 @@ export function initializeStorage(): AppStoreData {
 
   // Default User Certificate: Nguyễn Văn A (Đại học Công nghiệp Hà Nội)
   const user1KeyPair = generateElGamalKeyPair(2048, 'Nguyễn Văn A - Key Pair', true);
-  const user1Cert = issueCertificate(
+  const user1Cert = await issueCertificate(
     {
       commonName: 'Nguyễn Văn A',
       organization: 'Đại học Công nghiệp Hà Nội',
@@ -248,7 +248,7 @@ export function downloadPrivateKeyFile(cert: DigitalCertificate, keyPair: ElGama
 /**
  * Reset all storage to factory demo state
  */
-export function resetStorage(): AppStoreData {
+export async function resetStorage(): Promise<AppStoreData> {
   localStorage.removeItem(STORAGE_KEYS.ROOT_CA_CERT);
   localStorage.removeItem(STORAGE_KEYS.ROOT_CA_KEYPAIR);
   localStorage.removeItem(STORAGE_KEYS.CERTIFICATES);

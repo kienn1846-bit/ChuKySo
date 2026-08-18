@@ -80,23 +80,24 @@ signwcert/
 ├── src/
 │   ├── crypto/
 │   │   ├── bigint-utils.ts         # Số học BigInt: modPow, extendedGCD, modInverse, millerRabin, safePrime
-│   │   ├── elgamal.ts              # Sinh khoá, Ký số, Xác thực và Ghi vết toán học
-│   │   ├── hash.ts                 # SHA-256/512, Digest to BigInt mapping
-│   │   ├── pki.ts                  # Chứng thư số X.509, Root CA, Ký duyệt chứng thư
+│   │   ├── elgamal.ts              # Sinh khoá, Ký số, Xác thực, Mã hoá/Giải mã và Ghi vết toán học
+│   │   ├── hash.ts                 # SHA-256/512 (Web Crypto API), Digest to BigInt mapping
+│   │   ├── pki.ts                  # Chứng thư số X.509, Root CA, Ký duyệt chứng thư (async SHA-256)
 │   │   └── crypto.test.ts          # Bộ kiểm thử tự động thuật toán (Self-Test Suite)
 │   ├── services/
 │   │   ├── pdf-service.ts          # Đóng dấu điện tử visual e-Seal, nhúng chữ ký & xuất biên bản PDF
-│   │   ├── storage-service.ts      # Quản lý kho lưu trữ LocalStorage, nạp sẵn dữ liệu mẫu giảng viên/sinh viên
+│   │   ├── storage-service.ts      # Quản lý kho lưu trữ LocalStorage, nạp sẵn dữ liệu mẫu
+│   │   ├── crypto-logger.ts        # Ghi nhật ký chi tiết từng bước mật mã (Crypto Audit Trail)
 │   │   └── attack-sim-service.ts   # Mô phỏng bẻ khoá khi dùng lại k & phân tích độ phức tạp DLP
 │   ├── components/
 │   │   ├── layout/Header.tsx       # Thanh điều hướng, thông tin chứng thư & chuyển theme
 │   │   ├── dashboard/DashboardView.tsx # Tổng quan hệ thống, Self-Test trực tiếp
 │   │   ├── sign/SignDocumentView.tsx   # Ký PDF (Visual Stamp), Ký File & Ký Văn bản
+│   │   ├── sign/SignaturePadModal.tsx  # Bảng vẽ chữ ký tay Canvas (Draw/Upload)
 │   │   ├── verify/VerifySignatureView.tsx # Xác thực chữ ký 3 lớp & Xuất biên bản kiểm tra
 │   │   ├── pki/CertificateManagerView.tsx # Quản lý hạ tầng PKI, cấp phát & thu hồi chứng thư
 │   │   ├── lab/ElGamalLabView.tsx  # Phòng thí nghiệm toán học, bảng Euclid, demo tấn công
-│   │   ├── docs/AcademicDocsView.tsx # Báo cáo học thuật, chứng minh & câu hỏi bảo vệ BTL
-│   │   └── common/Toast.tsx        # Hệ thống thông báo trạng thái
+│   │   └── common/               # Toast thông báo & MathView (KaTeX LaTeX rendering)
 │   ├── styles/
 │   │   └── index.css               # Design System Vanilla CSS chuẩn Enterprise Security
 │   ├── types/index.ts              # Định nghĩa cấu trúc dữ liệu TypeScript
@@ -108,7 +109,7 @@ signwcert/
 ---
 
 ## 🎓 Câu Hỏi Phản Biện Hội Đồng Chấm Thi
-Trong tab **"Tài Liệu Báo Cáo BTL"** của ứng dụng, hệ thống đã tích hợp sẵn 4 chủ đề phản biện cốt lõi:
+Trong tab **"Phòng TN Toán"** (Lab) của ứng dụng, hệ thống tích hợp sẵn các mô phỏng để trả lời 4 chủ đề phản biện cốt lõi:
 - *Tại sao cần số nguyên tố an toàn để chống tấn công Pohlig-Hellman?*
 - *Phân tích lỗ hổng tái sử dụng số ngẫu nhiên $k$ (Vụ tấn công kinh điển Sony PlayStation 3).*
 - *So sánh chi phí tính toán và kích thước chữ ký giữa ElGamal và RSA.*
