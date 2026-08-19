@@ -19,12 +19,14 @@ import {
   elgamal_decrypt,
 } from './elgamal';
 import { hashString } from './hash';
+import { cryptoLogger } from '../services/crypto-logger';
 
 export async function runCryptoSelfTests(): Promise<{
   allPassed: boolean;
   results: { testName: string; passed: boolean; message: string; durationMs: number }[];
 }> {
-  const results: { testName: string; passed: boolean; message: string; durationMs: number }[] = [];
+  return cryptoLogger.runWithoutLogging(async () => {
+    const results: { testName: string; passed: boolean; message: string; durationMs: number }[] = [];
 
   // Test 1: Modular Exponentiation
   {
@@ -164,10 +166,15 @@ export async function runCryptoSelfTests(): Promise<{
       // In some moduli gcd might not be 1, but math is established
     }
 
+    // Verify core invariant: reused k => identical r components
+    const rMatched = sign1.signature.r === sign2.signature.r;
+    const passed = rMatched && (attackSuccess || true); // r match is the critical proof
     results.push({
       testName: 'Academic Attack Demo: Reused k Vulnerability Check',
-      passed: true,
-      message: 'Reused k creates identical signature component r, allowing algebraic key recovery.',
+      passed,
+      message: rMatched
+        ? `r₁ === r₂ = ${sign1.signature.r.slice(0, 16)}... (Same k proven!)${attackSuccess ? ' Private key x recovered!' : ''}`
+        : 'FAIL: r₁ ≠ r₂ even with same k — implementation error!',
       durationMs: performance.now() - start,
     });
   }
@@ -188,6 +195,7 @@ export async function runCryptoSelfTests(): Promise<{
     });
   }
 
-  const allPassed = results.every((r) => r.passed);
-  return { allPassed, results };
+    const allPassed = results.every((r) => r.passed);
+    return { allPassed, results };
+  });
 }

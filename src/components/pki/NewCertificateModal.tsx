@@ -92,10 +92,10 @@ export const NewCertificateModal: React.FC<NewCertificateModalProps> = ({
             </div>
             <div>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                Cấp Phát Chứng Thư Số Mới (Issue Certificate)
+                Cấp phát chứng thư số mới
               </h3>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Ký duyệt bởi Cơ quan Chứng thực Gốc (Root CA)
+                Ký duyệt bởi Cơ quan chứng thực gốc (Root CA)
               </div>
             </div>
           </div>
@@ -108,7 +108,7 @@ export const NewCertificateModal: React.FC<NewCertificateModalProps> = ({
           {/* Form inputs */}
           <div className="form-group">
             <label className="form-label">
-              <User size={14} style={{ display: 'inline', marginRight: '4px' }} /> Họ và tên người nhận (Common Name) *:
+              <User size={14} style={{ display: 'inline', marginRight: '4px' }} /> Họ và tên người nhận *:
             </label>
             <input
               type="text"
@@ -120,18 +120,20 @@ export const NewCertificateModal: React.FC<NewCertificateModalProps> = ({
             />
           </div>
 
-          <div className="grid-2" style={{ gap: '12px' }}>
+          <div className="grid-2">
             <div className="form-group">
               <label className="form-label">
-                <Building size={14} style={{ display: 'inline', marginRight: '4px' }} /> Tổ chức / Trường:
+                <Building size={14} style={{ display: 'inline', marginRight: '4px' }} /> Tên đơn vị / Tổ chức *:
               </label>
               <input
                 type="text"
                 className="form-input"
+                required
                 value={organization}
                 onChange={(e) => setOrganization(e.target.value)}
               />
             </div>
+
             <div className="form-group">
               <label className="form-label">Khoa / Phòng ban:</label>
               <input

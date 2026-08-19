@@ -10,6 +10,7 @@ import {
 } from '../types';
 import { createRootCA, issueCertificate } from '../crypto/pki';
 import { generateElGamalKeyPair } from '../crypto/elgamal';
+import { cryptoLogger } from './crypto-logger';
 
 const STORAGE_KEYS = {
   VERSION: 'signwcert_storage_version',
@@ -21,7 +22,7 @@ const STORAGE_KEYS = {
   ACTIVE_CERT_ID: 'signwcert_active_cert_id',
 };
 
-const CURRENT_STORAGE_VERSION = 'v5_haui_nguyen_van_a_seal';
+const CURRENT_STORAGE_VERSION = 'v6_clean_start_empty_logs';
 
 export interface AppStoreData {
   rootCACert: DigitalCertificate;
@@ -38,13 +39,14 @@ export interface AppStoreData {
 export async function initializeStorage(): Promise<AppStoreData> {
   const version = localStorage.getItem(STORAGE_KEYS.VERSION);
   if (version !== CURRENT_STORAGE_VERSION) {
-    // Clear legacy storage with previous demo user
+    // Clear legacy storage and logs with previous state
     localStorage.removeItem(STORAGE_KEYS.ROOT_CA_CERT);
     localStorage.removeItem(STORAGE_KEYS.ROOT_CA_KEYPAIR);
     localStorage.removeItem(STORAGE_KEYS.CERTIFICATES);
     localStorage.removeItem(STORAGE_KEYS.KEYPAIRS);
     localStorage.removeItem(STORAGE_KEYS.SIGNING_HISTORY);
     localStorage.removeItem(STORAGE_KEYS.ACTIVE_CERT_ID);
+    localStorage.removeItem('signwcert_crypto_logs');
     localStorage.setItem(STORAGE_KEYS.VERSION, CURRENT_STORAGE_VERSION);
   }
 
@@ -77,52 +79,54 @@ export async function initializeStorage(): Promise<AppStoreData> {
     };
   }
 
-  // First time initialization: Create Root CA
-  const { rootCert, rootKeyPair } = await createRootCA(
-    'Đại học Công nghiệp Hà Nội - Trung Tâm Chứng Thực Gốc (HaUI Root CA)',
-    'Trường Đại học Công nghiệp Hà Nội'
-  );
+  // First time initialization: Create Root CA without polluting execution logs
+  return cryptoLogger.runWithoutLogging(async () => {
+    const { rootCert, rootKeyPair } = await createRootCA(
+      'Đại học Công nghiệp Hà Nội - Trung Tâm Chứng Thực Gốc (HaUI Root CA)',
+      'Trường Đại học Công nghiệp Hà Nội'
+    );
 
-  const certificates: DigitalCertificate[] = [rootCert];
-  const keyPairs: Record<string, ElGamalKeyPair> = {
-    [rootCert.id]: rootKeyPair,
-  };
+    const certificates: DigitalCertificate[] = [rootCert];
+    const keyPairs: Record<string, ElGamalKeyPair> = {
+      [rootCert.id]: rootKeyPair,
+    };
 
-  // Default User Certificate: Nguyễn Văn A (Đại học Công nghiệp Hà Nội)
-  const user1KeyPair = generateElGamalKeyPair(2048, 'Nguyễn Văn A - Key Pair', true);
-  const user1Cert = await issueCertificate(
-    {
-      commonName: 'Nguyễn Văn A',
-      organization: 'Đại học Công nghiệp Hà Nội',
-      department: 'Khoa Công nghệ Thông tin',
-      email: 'nguyenvana@haui.edu.vn',
-      studentId: 'HaUI-2024-001',
-      country: 'VN',
-    },
-    user1KeyPair.publicKey,
-    rootKeyPair,
-    rootCert,
-    3
-  );
-  certificates.push(user1Cert);
-  keyPairs[user1Cert.id] = user1KeyPair;
+    // Default User Certificate: Nguyễn Văn A (Đại học Công nghiệp Hà Nội)
+    const user1KeyPair = generateElGamalKeyPair(2048, 'Nguyễn Văn A - Key Pair', true);
+    const user1Cert = await issueCertificate(
+      {
+        commonName: 'Nguyễn Văn A',
+        organization: 'Đại học Công nghiệp Hà Nội',
+        department: 'Khoa Công nghệ Thông tin',
+        email: 'nguyenvana@haui.edu.vn',
+        studentId: 'HaUI-2024-001',
+        country: 'VN',
+      },
+      user1KeyPair.publicKey,
+      rootKeyPair,
+      rootCert,
+      3
+    );
+    certificates.push(user1Cert);
+    keyPairs[user1Cert.id] = user1KeyPair;
 
-  // Save to localStorage
-  localStorage.setItem(STORAGE_KEYS.ROOT_CA_CERT, JSON.stringify(rootCert));
-  localStorage.setItem(STORAGE_KEYS.ROOT_CA_KEYPAIR, JSON.stringify(rootKeyPair));
-  localStorage.setItem(STORAGE_KEYS.CERTIFICATES, JSON.stringify(certificates));
-  localStorage.setItem(STORAGE_KEYS.KEYPAIRS, JSON.stringify(keyPairs));
-  localStorage.setItem(STORAGE_KEYS.SIGNING_HISTORY, JSON.stringify([]));
-  localStorage.setItem(STORAGE_KEYS.ACTIVE_CERT_ID, user1Cert.id);
+    // Save to localStorage
+    localStorage.setItem(STORAGE_KEYS.ROOT_CA_CERT, JSON.stringify(rootCert));
+    localStorage.setItem(STORAGE_KEYS.ROOT_CA_KEYPAIR, JSON.stringify(rootKeyPair));
+    localStorage.setItem(STORAGE_KEYS.CERTIFICATES, JSON.stringify(certificates));
+    localStorage.setItem(STORAGE_KEYS.KEYPAIRS, JSON.stringify(keyPairs));
+    localStorage.setItem(STORAGE_KEYS.SIGNING_HISTORY, JSON.stringify([]));
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_CERT_ID, user1Cert.id);
 
-  return {
-    rootCACert: rootCert,
-    rootCAKeyPair: rootKeyPair,
-    certificates,
-    keyPairs,
-    signingHistory: [],
-    activeCertId: user1Cert.id,
-  };
+    return {
+      rootCACert: rootCert,
+      rootCAKeyPair: rootKeyPair,
+      certificates,
+      keyPairs,
+      signingHistory: [],
+      activeCertId: user1Cert.id,
+    };
+  });
 }
 
 /**

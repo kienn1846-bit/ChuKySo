@@ -37,10 +37,10 @@ export const CertificateDetailsModal: React.FC<CertificateDetailsModalProps> = (
             </div>
             <div>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                Chi Tiết Chứng Thư Số (X.509 ElGamal Certificate)
+                Chi tiết chứng thư số điện tử
               </h3>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Serial: <code style={{ color: 'var(--accent-cyan)' }}>{cert.serialNumber}</code>
+                Mã số serial: <code style={{ color: 'var(--accent-cyan)' }}>{cert.serialNumber}</code>
               </div>
             </div>
           </div>

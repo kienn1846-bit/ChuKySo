@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Component, ErrorInfo, ReactNode } from 'react';
 import { Header } from './components/layout/Header';
-import { DashboardView } from './components/dashboard/DashboardView';
 import { SignDocumentView } from './components/sign/SignDocumentView';
 import { VerifySignatureView } from './components/verify/VerifySignatureView';
 import { CertificateManagerView } from './components/pki/CertificateManagerView';
-import { CryptoLogsView } from './components/logs/CryptoLogsView';
 import { ElGamalLabView } from './components/lab/ElGamalLabView';
 import { Toast, ToastMessage } from './components/common/Toast';
 import {
@@ -25,7 +23,7 @@ import './styles/index.css';
 
 export const App: React.FC = () => {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [activeTab, setActiveTab] = useState<string>('pki');
 
   // Storage State
   const [rootCert, setRootCert] = useState<DigitalCertificate | null>(null);
@@ -157,13 +155,17 @@ export const App: React.FC = () => {
 
       {/* Main Content Area */}
       <main className="main-content">
-        {activeTab === 'dashboard' && (
-          <DashboardView
-            certificates={certificates}
+        {activeTab === 'pki' && (
+          <CertificateManagerView
             rootCert={rootCert}
-            signingHistory={signingHistory}
-            setActiveTab={setActiveTab}
-            onSelectCert={(cert) => handleSetActiveCertId(cert.id)}
+            rootKeyPair={rootKeyPair}
+            certificates={certificates}
+            keyPairs={keyPairs}
+            activeCertId={activeCertId}
+            setActiveCertId={handleSetActiveCertId}
+            onSaveNewCert={handleSaveNewCert}
+            onUpdateStatus={handleUpdateStatus}
+            onNotify={notify}
           />
         )}
 
@@ -189,24 +191,6 @@ export const App: React.FC = () => {
           />
         )}
 
-        {activeTab === 'pki' && (
-          <CertificateManagerView
-            rootCert={rootCert}
-            rootKeyPair={rootKeyPair}
-            certificates={certificates}
-            keyPairs={keyPairs}
-            activeCertId={activeCertId}
-            setActiveCertId={handleSetActiveCertId}
-            onSaveNewCert={handleSaveNewCert}
-            onUpdateStatus={handleUpdateStatus}
-            onNotify={notify}
-          />
-        )}
-
-        {activeTab === 'logs' && (
-          <CryptoLogsView onNotify={notify} />
-        )}
-
         {activeTab === 'lab' && <ElGamalLabView />}
       </main>
 
@@ -216,6 +200,78 @@ export const App: React.FC = () => {
   );
 };
 
-export default App;
+/**
+ * React Error Boundary – catches runtime errors in any child component
+ * and displays a recovery UI instead of a blank white screen.
+ */
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+}
 
+class AppErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryState> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('[SignWCert ErrorBoundary]', error, info.componentStack);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#0a0f1d',
+          color: '#f1f5f9',
+          fontFamily: 'system-ui, sans-serif',
+          padding: '40px',
+          textAlign: 'center',
+          gap: '16px',
+        }}>
+          <div style={{ fontSize: '3rem' }}>⚠️</div>
+          <h1 style={{ fontSize: '1.4rem', fontWeight: 700 }}>Đã xảy ra lỗi hệ thống</h1>
+          <p style={{ color: '#94a3b8', maxWidth: '500px', lineHeight: 1.6 }}>
+            Một lỗi không mong muốn đã xảy ra trong quá trình xử lý. Vui lòng tải lại trang hoặc xóa dữ liệu cục bộ.
+          </p>
+          <code style={{ background: '#1e293b', padding: '12px 20px', borderRadius: '8px', fontSize: '0.82rem', color: '#ef4444', maxWidth: '600px', overflow: 'auto' }}>
+            {this.state.error?.message || 'Unknown error'}
+          </code>
+          <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+            <button
+              onClick={() => window.location.reload()}
+              style={{ padding: '10px 24px', borderRadius: '8px', background: '#0284c7', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+            >
+              Tải lại trang
+            </button>
+            <button
+              onClick={() => { localStorage.clear(); window.location.reload(); }}
+              style={{ padding: '10px 24px', borderRadius: '8px', background: '#334155', color: '#f1f5f9', border: '1px solid #475569', cursor: 'pointer', fontWeight: 600 }}
+            >
+              Xóa dữ liệu & Tải lại
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function AppWithErrorBoundary() {
+  return (
+    <AppErrorBoundary>
+      <App />
+    </AppErrorBoundary>
+  );
+}

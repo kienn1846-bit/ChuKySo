@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# AI Agent config (not part of the project)
+.agents/
+skills-lock.json

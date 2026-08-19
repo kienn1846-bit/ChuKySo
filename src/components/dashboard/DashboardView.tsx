@@ -60,25 +60,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="badge badge-indigo">Chuẩn PKI & ElGamal-2048</span>
           </div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '10px' }}>
-            Hệ Thống Ký Số Văn Bản Điện Tử Hệ Mật ElGamal
+            Hệ thống ký số văn bản điện tử hệ mật ElGamal
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.96rem', lineHeight: '1.6', marginBottom: '20px' }}>
-            Giải pháp toàn diện ứng dụng chữ ký số ElGamal trên trường số nguyên lớn Z_p*, tích hợp
-            hạ tầng mã hoá khoá công khai (PKI) với cơ quan chứng thực gốc (Root CA), đóng dấu điện tử trực quan trên tài liệu PDF và xác thực 3 lớp an toàn.
+            Giải pháp toàn diện ứng dụng chữ ký số ElGamal trên trường số nguyên lớn <MathView math="\mathbb{Z}_p^*" />, tích hợp
+            hạ tầng quản lý khóa công khai (PKI) với cơ quan chứng thực gốc (Root CA), đóng dấu điện tử trực quan trên tài liệu PDF và xác thực 3 lớp an toàn.
           </p>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-            <button className="btn btn-primary btn-lg" onClick={() => setActiveTab('sign')}>
-              <FileSignature size={18} />
-              <span>Bắt Đầu Ký Văn Bản</span>
-            </button>
-            <button className="btn btn-secondary btn-lg" onClick={() => setActiveTab('verify')}>
-              <SearchCheck size={18} />
-              <span>Xác Thực Chữ Ký</span>
-            </button>
-            <button className="btn btn-outline btn-lg" onClick={() => setActiveTab('pki')}>
+            <button className="btn btn-primary btn-lg" onClick={() => setActiveTab('pki')}>
               <Award size={18} />
-              <span>Quản Lý Chứng Thư CA</span>
+              <span>1. Quản lý chứng thư CA</span>
+            </button>
+            <button className="btn btn-secondary btn-lg" onClick={() => setActiveTab('sign')}>
+              <FileSignature size={18} />
+              <span>2. Ký số văn bản</span>
+            </button>
+            <button className="btn btn-outline btn-lg" onClick={() => setActiveTab('verify')}>
+              <SearchCheck size={18} />
+              <span>3. Xác thực chữ ký</span>
             </button>
           </div>
         </div>
@@ -128,7 +128,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)' }}>
               2048-bit
             </div>
-            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Cỡ khoá an toàn tối đa</div>
+            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Cỡ khóa an toàn tối đa</div>
           </div>
         </div>
 
@@ -187,11 +187,38 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="card-header">
               <h2 className="card-title">
                 <Lock size={18} color="var(--accent-cyan)" />
-                <span>Các Chức Năng Cốt Lõi Của Hệ Thống</span>
+                <span>Quy trình & chức năng hệ thống</span>
               </h2>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '14px',
+                  padding: '14px',
+                  background: 'var(--bg-input)',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                  border: '1px solid var(--border-subtle)',
+                }}
+                onClick={() => setActiveTab('pki')}
+              >
+                <div style={{ padding: '8px', borderRadius: '8px', background: 'rgba(99, 102, 241, 0.15)', color: 'var(--accent-indigo)' }}>
+                  <Award size={20} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+                    1. Quản lý chứng thư số & cơ quan chứng thực (PKI)
+                  </div>
+                  <div style={{ fontSize: '0.84rem', color: 'var(--text-muted)' }}>
+                    Cấp phát chứng thư số người dùng chuẩn cấu trúc X.509, ký duyệt bởi Root CA, xuất và nhập tệp tin <code>.crt</code>, <code>.key</code>.
+                  </div>
+                </div>
+                <ArrowRight size={16} color="var(--text-dim)" />
+              </div>
+
               <div
                 style={{
                   display: 'flex',
@@ -210,7 +237,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
-                    1. Ký số Văn bản & Đóng dấu điện tử (PDF Visual Stamp)
+                    2. Ký số văn bản & đóng con dấu điện tử (PDF)
                   </div>
                   <div style={{ fontSize: '0.84rem', color: 'var(--text-muted)' }}>
                     Băm tài liệu SHA-256, tính toán cặp chữ ký ElGamal (r, s), đính kèm con dấu điện tử trực quan và nhúng chữ ký số vào văn bản.
@@ -237,37 +264,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
-                    2. Xác thực Chữ ký 3 Lớp & Báo cáo Kiểm tra
+                    3. Xác thực chữ ký 3 lớp & báo cáo kiểm tra
                   </div>
                   <div style={{ fontSize: '0.84rem', color: 'var(--text-muted)' }}>
                     Kiểm tra tính toàn vẹn (Integrity), đối chiếu phương trình toán học <MathView math="v_1 \equiv v_2 \pmod p" /> và thẩm định chứng thư số từ Root CA.
-                  </div>
-                </div>
-                <ArrowRight size={16} color="var(--text-dim)" />
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '14px',
-                  padding: '14px',
-                  background: 'var(--bg-input)',
-                  borderRadius: '10px',
-                  cursor: 'pointer',
-                  border: '1px solid var(--border-subtle)',
-                }}
-                onClick={() => setActiveTab('pki')}
-              >
-                <div style={{ padding: '8px', borderRadius: '8px', background: 'rgba(99, 102, 241, 0.15)', color: 'var(--accent-indigo)' }}>
-                  <Award size={20} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
-                    3. Quản lý Chứng thư số & Cơ quan Chứng thực (PKI)
-                  </div>
-                  <div style={{ fontSize: '0.84rem', color: 'var(--text-muted)' }}>
-                    Cấp phát chứng thư số người dùng X.509-like, ký duyệt bởi Root CA, xuất/nhập tệp tin <code>.crt</code> và <code>.key</code>.
                   </div>
                 </div>
                 <ArrowRight size={16} color="var(--text-dim)" />
@@ -282,7 +282,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="card-header">
               <h2 className="card-title">
                 <ShieldCheck size={18} color="var(--status-success)" />
-                <span>Kiểm Định Tự Động Thuật Toán (Self-Test Suite)</span>
+                <span>Kiểm tra tự động các thuật toán số học</span>
               </h2>
               {selfTestResults && (
                 <span className={`badge ${selfTestResults.allPassed ? 'badge-success' : 'badge-danger'}`}>
@@ -345,9 +345,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 color: 'var(--text-muted)',
               }}
             >
-              <strong>Cơ quan Chứng thực Gốc (Root CA):</strong> {rootCert.subject.commonName}
+              <strong>Cơ quan chứng thực gốc (Root CA):</strong> {rootCert.subject.commonName}
               <br />
-              <strong>Serial:</strong> <code style={{ color: 'var(--accent-cyan)' }}>{rootCert.serialNumber}</code> | <strong>Thuật toán:</strong> ElGamal-2048 / SHA-256
+              <strong>Mã số serial:</strong> <code style={{ color: 'var(--accent-cyan)' }}>{rootCert.serialNumber}</code> | <strong>Thuật toán:</strong> ElGamal-2048 / SHA-256
             </div>
           </div>
         </div>

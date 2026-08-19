@@ -282,10 +282,10 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
       <div>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <FileSignature size={24} color="var(--accent-cyan)" />
-          <span>Ký Số Văn Bản Điện Tử & Đóng Dấu Chữ Ký (ElGamal Digital Signing Studio)</span>
+          <span>Ký số văn bản điện tử & đóng dấu con dấu</span>
         </h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '4px' }}>
-          Tạo chữ ký số ElGamal và tự động đóng con dấu điện tử (Visual Stamp + QR Code) vào file văn bản PDF.
+          Tạo chữ ký số ElGamal và tự động đóng con dấu điện tử vào tệp văn bản PDF.
         </p>
       </div>
 
@@ -297,7 +297,7 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
             <div className="card-header">
               <h3 className="card-title">
                 <Key size={18} color="var(--accent-cyan)" />
-                <span>1. Chứng Thư Số & Khoá Ký Hiện Tại</span>
+                <span>1. Chứng thư số & khóa ký hiện tại</span>
               </h3>
               {activeCert && (
                 <span className={`badge ${activeCert.status === 'active' ? 'badge-success' : 'badge-danger'}`}>
@@ -323,7 +323,7 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
                 <div><strong>Đơn vị:</strong> {activeCert.subject.organization} {activeCert.subject.department ? `- ${activeCert.subject.department}` : ''}</div>
                 <div><strong>Cơ quan cấp (CA):</strong> {activeCert.issuer.commonName}</div>
                 <div><strong>Thời hạn:</strong> Đến {new Date(activeCert.validTo).toLocaleDateString('vi-VN')}</div>
-                <div><strong>Serial:</strong> <code style={{ color: 'var(--accent-cyan)' }}>{activeCert.serialNumber}</code></div>
+                <div><strong>Mã số serial:</strong> <code style={{ color: 'var(--accent-cyan)' }}>{activeCert.serialNumber}</code></div>
                 <div><strong>Thuật toán:</strong> ElGamal-{activeCert.publicKey.bitLength || 1024} bit (SHA-256)</div>
               </div>
             )}
@@ -334,7 +334,7 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
             <div className="card-header">
               <h3 className="card-title">
                 <FileText size={18} color="var(--accent-blue)" />
-                <span>2. Chọn Tài Liệu / Văn Bản Cần Ký</span>
+                <span>2. Chọn tài liệu / văn bản cần ký</span>
               </h3>
             </div>
 
@@ -344,19 +344,19 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
                 className={`btn btn-sm ${signMode === 'pdf' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => setSignMode('pdf')}
               >
-                <FileCheck size={14} /> File PDF (Đóng dấu vào trang)
+                <FileCheck size={14} /> Tệp PDF (Đóng dấu)
               </button>
               <button
                 className={`btn btn-sm ${signMode === 'text' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => setSignMode('text')}
               >
-                <FileText size={14} /> Soạn Văn Bản (Xuất PDF có dấu)
+                <FileText size={14} /> Soạn văn bản trực tiếp
               </button>
               <button
                 className={`btn btn-sm ${signMode === 'file' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => setSignMode('file')}
               >
-                <Upload size={14} /> File Bất Kỳ
+                <Upload size={14} /> Tệp tin bất kỳ
               </button>
             </div>
 
@@ -397,16 +397,16 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
                         Dung lượng: {(selectedFile.size / 1024).toFixed(1)} KB | Loại: {selectedFile.type || 'Binary'}
                       </div>
                       <div style={{ marginTop: '10px' }}>
-                        <span className="badge badge-cyan">Click để chọn file khác</span>
+                        <span className="badge badge-cyan">Bấm để chọn tệp khác</span>
                       </div>
                     </div>
                   ) : (
                     <div>
                       <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>
-                        Kéo thả file vào đây hoặc bấm để duyệt file
+                        Kéo thả tệp vào đây hoặc bấm để chọn tệp
                       </div>
                       <div style={{ color: 'var(--text-dim)', fontSize: '0.82rem', marginTop: '6px' }}>
-                        {signMode === 'pdf' ? 'Hỗ trợ định dạng PDF (sẽ đóng dấu vào trang chỉ định)' : 'Hỗ trợ mọi định dạng tệp tin'}
+                        {signMode === 'pdf' ? 'Hỗ trợ định dạng PDF (tự động đóng dấu vào trang văn bản)' : 'Hỗ trợ mọi định dạng tệp tin'}
                       </div>
                     </div>
                   )}
@@ -423,7 +423,7 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
                 disabled={isSigning || (!selectedFile && signMode !== 'text')}
               >
                 <FileSignature size={20} />
-                <span>{isSigning ? 'Đang Tính Toán & Đóng Dấu Ký Số...' : 'Thực Hiện Ký Số & Đóng Dấu Văn Bản'}</span>
+                <span>{isSigning ? 'Đang tính toán & đóng dấu ký số...' : 'Thực hiện ký số & đóng dấu văn bản'}</span>
               </button>
             </div>
           </div>
@@ -436,9 +436,9 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
             <div className="card-header">
               <h3 className="card-title">
                 <Sliders size={18} color="var(--accent-blue)" />
-                <span>Mẫu Chữ Ký Số & Con Dấu Điện Tử</span>
+                <span>Mẫu chữ ký số & con dấu điện tử</span>
               </h3>
-              <span className="badge badge-cyan">Chuẩn CKS Thật</span>
+              <span className="badge badge-cyan">Chuẩn chữ ký số</span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -450,23 +450,23 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
                 onClick={() => setIsSigModalOpen(true)}
               >
                 <PenTool size={16} />
-                <span>✍️ Mở Signature Studio (Vẽ / Tải ảnh chữ ký tay & Đổi thông tin)</span>
+                <span>✍️ Vẽ / Tải ảnh chữ ký tay & tùy chỉnh con dấu</span>
               </button>
 
               {/* Quick Settings Grid */}
               <div className="grid-2" style={{ gap: '10px' }}>
                 <div>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Màu mực & viền con dấu:</label>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Màu mực con dấu:</label>
                   <select
                     className="form-select"
                     style={{ padding: '6px 10px', fontSize: '0.84rem' }}
                     value={stampConfig.color}
                     onChange={(e) => setStampConfig({ ...stampConfig, color: e.target.value as any })}
                   >
-                    <option value="blue">Xanh chuẩn CKS (Corporate Blue - Viettel/VNPT)</option>
-                    <option value="crimson">Đỏ công vụ (Official Red - Chuẩn văn bản)</option>
-                    <option value="emerald">Xanh lục bảo mật (Emerald Trust)</option>
-                    <option value="slate">Đen than (Dark Slate)</option>
+                    <option value="blue">Xanh chuẩn chữ ký số (Corporate Blue)</option>
+                    <option value="crimson">Đỏ công vụ (Chuẩn văn bản)</option>
+                    <option value="emerald">Xanh lục bảo mật</option>
+                    <option value="slate">Đen than</option>
                   </select>
                 </div>
 
@@ -478,16 +478,16 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
                     value={stampConfig.backgroundStyle || 'white'}
                     onChange={(e) => setStampConfig({ ...stampConfig, backgroundStyle: e.target.value as any })}
                   >
-                    <option value="white">Nền trắng tinh chuẩn văn bản (White)</option>
-                    <option value="transparent">Nền trong suốt (Transparent)</option>
-                    <option value="tinted">Nền màu nhẹ (Light Tinted)</option>
+                    <option value="white">Nền trắng chuẩn văn bản</option>
+                    <option value="transparent">Nền trong suốt</option>
+                    <option value="tinted">Nền màu nhạt</option>
                   </select>
                 </div>
               </div>
 
               <div className="grid-2" style={{ gap: '10px' }}>
                 <div>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Hiệu lực từ (Validate From):</label>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Hiệu lực từ ngày:</label>
                   <input
                     type="text"
                     className="form-input"
@@ -499,7 +499,7 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
                 </div>
 
                 <div>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Hiệu lực đến (Validate To):</label>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Hiệu lực đến ngày:</label>
                   <input
                     type="text"
                     className="form-input"
@@ -511,36 +511,11 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
                 </div>
               </div>
 
-              {signMode === 'pdf' && (
-                <div>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Trang đóng dấu trên PDF:</label>
-                  <input
-                    type="number"
-                    className="form-input"
-                    style={{ padding: '6px 10px', fontSize: '0.84rem' }}
-                    min={1}
-                    value={stampConfig.pageNumber}
-                    onChange={(e) => setStampConfig({ ...stampConfig, pageNumber: parseInt(e.target.value) || 1 })}
-                  />
-                </div>
-              )}
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.82rem' }}>
-                  <input
-                    type="checkbox"
-                    checked={stampConfig.showQrCode}
-                    onChange={(e) => setStampConfig({ ...stampConfig, showQrCode: e.target.checked })}
-                  />
-                  <span>Đính kèm mã QR tra cứu tính toàn vẹn chữ ký</span>
-                </label>
-              </div>
-
               {/* Stamp Preview Card */}
               <div style={{ marginTop: '4px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-main)', fontWeight: 600 }}>
-                    Xem trước mẫu con dấu điện tử (Live Preview):
+                    Xem trước mẫu con dấu điện tử:
                   </span>
                   {stampConfig.handwrittenSignatureUrl && (
                     <span className="badge badge-success" style={{ fontSize: '0.7rem' }}>
@@ -562,7 +537,7 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
                   >
                     <img
                       src={stampPreviewUrl}
-                      alt="Visual Stamp Preview"
+                      alt="Xem trước con dấu"
                       style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px', display: 'inline-block' }}
                     />
                   </div>
@@ -593,9 +568,9 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
               <div className="card-header">
                 <h3 className="card-title" style={{ color: 'var(--status-success)' }}>
                   <CheckCircle2 size={20} />
-                  <span>Văn Bản Đã Được Ký Số & Đóng Dấu Thành Công!</span>
+                  <span>Văn bản đã được ký số & đóng dấu thành công!</span>
                 </h3>
-                <span className="badge badge-success">Đã Đóng Dấu PDF</span>
+                <span className="badge badge-success">Đã đóng dấu PDF</span>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.85rem' }}>

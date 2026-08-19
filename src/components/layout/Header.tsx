@@ -31,19 +31,17 @@ export const Header: React.FC<HeaderProps> = ({
   onResetStorage,
 }) => {
   const navTabs = [
-    { id: 'dashboard', label: 'Tổng Quan', icon: ShieldCheck },
-    { id: 'sign', label: 'Ký Số Văn Bản', icon: FileSignature },
-    { id: 'verify', label: 'Xác Thực Chữ Ký', icon: SearchCheck },
-    { id: 'pki', label: 'Chứng Thư Số & CA', icon: Award },
-    { id: 'logs', label: 'Nhật Ký', icon: BookOpen },
-    { id: 'lab', label: 'Phòng TN Toán', icon: FlaskConical },
+    { id: 'pki', label: 'Chứng thư số & CA', icon: Award },
+    { id: 'sign', label: 'Ký số văn bản', icon: FileSignature },
+    { id: 'verify', label: 'Xác thực chữ ký', icon: SearchCheck },
+    { id: 'lab', label: 'Phòng TN toán', icon: FlaskConical },
   ];
 
   return (
     <header className="header-bar">
       <div className="header-container">
         {/* Brand */}
-        <div className="brand-logo" onClick={() => setActiveTab('dashboard')} style={{ cursor: 'pointer' }}>
+        <div className="brand-logo" onClick={() => setActiveTab('pki')} style={{ cursor: 'pointer' }}>
           <div className="brand-icon-box">
             <ShieldCheck size={22} />
           </div>
@@ -55,7 +53,7 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
             <div className="brand-subtitle">
-              Hệ thống Ký số Văn bản ElGamal & Quản lý Chứng thực PKI
+              Hệ thống ký số văn bản ElGamal & quản lý chứng thực PKI
             </div>
           </div>
         </div>
@@ -83,15 +81,14 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           )}
 
-          {/* Reset Demo Data Button */}
+          {/* Reset Demo Data Button - subtle icon-only */}
           <button
             className="btn btn-outline btn-sm"
             onClick={onResetStorage}
-            title="Khôi phục dữ liệu mẫu ban đầu"
-            style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
+            title="Khôi phục dữ liệu mẫu ban đầu (Reset Demo)"
+            style={{ display: 'flex', alignItems: 'center', gap: '4px', opacity: 0.6 }}
           >
             <RotateCcw size={14} />
-            <span>Reset Demo</span>
           </button>
 
           {/* Theme Toggle */}

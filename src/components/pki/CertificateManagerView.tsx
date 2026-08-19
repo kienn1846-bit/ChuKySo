@@ -101,10 +101,10 @@ export const CertificateManagerView: React.FC<CertificateManagerViewProps> = ({
         <div>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Award size={24} color="var(--accent-cyan)" />
-            <span>Quản Lý Chứng Thư Số & Cơ Quan Chứng Thực (PKI Studio)</span>
+            <span>Quản lý chứng thư số & cơ quan chứng thực (PKI)</span>
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '4px' }}>
-            Hạ tầng quản lý khoá công khai (PKI), cấp phát, thu hồi (CRL) và thẩm định chữ ký số của Root CA.
+            Hạ tầng quản lý khóa công khai (PKI), cấp phát, thu hồi và thẩm định chứng thư số bởi Root CA.
           </p>
         </div>
 
@@ -118,11 +118,11 @@ export const CertificateManagerView: React.FC<CertificateManagerViewProps> = ({
           />
           <button className="btn btn-secondary" onClick={() => importInputRef.current?.click()}>
             <Upload size={16} />
-            <span>Nhập Chứng Thư (.crt)</span>
+            <span>Nhập chứng thư (.crt)</span>
           </button>
           <button className="btn btn-primary" onClick={() => setIsNewCertModalOpen(true)}>
             <Plus size={16} />
-            <span>Cấp Phát Chứng Thư Mới</span>
+            <span>Cấp phát chứng thư mới</span>
           </button>
         </div>
       </div>
@@ -156,13 +156,13 @@ export const CertificateManagerView: React.FC<CertificateManagerViewProps> = ({
               className="btn btn-outline btn-sm"
               onClick={() => setSelectedCertForModal(rootCert)}
             >
-              <Eye size={14} /> Xem Chi Tiết CA
+              <Eye size={14} /> Xem chi tiết CA
             </button>
             <button
               className="btn btn-secondary btn-sm"
               onClick={() => downloadCertificateFile(rootCert)}
             >
-              <Download size={14} /> Tải CA Cert
+              <Download size={14} /> Tải chứng thư CA
             </button>
           </div>
         </div>
@@ -191,12 +191,12 @@ export const CertificateManagerView: React.FC<CertificateManagerViewProps> = ({
           <table className="table-custom">
             <thead>
               <tr>
-                <th>Chủ Thể (Subject)</th>
-                <th>Đơn Vị / MSSV</th>
-                <th>Thuật Toán & Serial</th>
-                <th>Hiệu Lực</th>
-                <th>Trạng Thái</th>
-                <th style={{ textAlign: 'right' }}>Thao Tác</th>
+                <th>Chủ thể</th>
+                <th>Đơn vị / MSSV</th>
+                <th>Thuật toán & Serial</th>
+                <th>Thời hạn hiệu lực</th>
+                <th>Trạng thái</th>
+                <th style={{ textAlign: 'right' }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>

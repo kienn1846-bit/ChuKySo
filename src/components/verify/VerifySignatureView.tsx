@@ -217,7 +217,8 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
       setVerificationResult(result);
 
       if (overallValid) {
-        confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+        // Subtle professional celebration (green/teal tones, low-key)
+        confetti({ particleCount: 30, spread: 50, origin: { y: 0.6 }, colors: ['#10b981', '#06b6d4', '#3b82f6'], gravity: 1.2 });
         onNotify('XÁC THỰC THÀNH CÔNG: Chữ ký số ElGamal hợp lệ và tài liệu toàn vẹn!', 'success');
       } else {
         onNotify('CẢNH BÁO: Chữ ký số không hợp lệ hoặc tài liệu đã bị sửa đổi!', 'danger');
@@ -251,10 +252,10 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
       <div>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <SearchCheck size={24} color="var(--status-success)" />
-          <span>Xác Thực Chữ Ký Số 3 Lớp (Verification Studio)</span>
+          <span>Xác thực chữ ký số 3 lớp</span>
         </h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '4px' }}>
-          Thẩm định tính toàn vẹn văn bản (SHA-256), kiểm tra phương trình đồng dư ElGamal <MathView math="v_1 \equiv v_2 \pmod p" /> và đối chiếu chuỗi tin cậy PKI Root CA.
+          Thẩm định tính toàn vẹn văn bản (SHA-256), đối chiếu phương trình đồng dư toán học ElGamal <MathView math="v_1 \equiv v_2 \pmod p" /> và kiểm tra chuỗi chứng thực PKI Root CA.
         </p>
       </div>
 
@@ -266,7 +267,7 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
             <div className="card-header">
               <h3 className="card-title">
                 <FileCheck size={18} color="var(--accent-cyan)" />
-                <span>1. Tải Gói Chữ Ký Số (.sig.json)</span>
+                <span>1. Tải gói chữ ký số (.sig.json)</span>
               </h3>
               {sigPackage && <span className="badge badge-success">Đã nạp</span>}
             </div>
@@ -315,7 +316,7 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
             <div className="card-header">
               <h3 className="card-title">
                 <Upload size={18} color="var(--accent-blue)" />
-                <span>2. Tải Tài Liệu Cần Kiểm Chứng</span>
+                <span>2. Tải tài liệu cần kiểm chứng</span>
               </h3>
             </div>
 
@@ -325,13 +326,13 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
                 className={`btn btn-sm ${verifyMode === 'package' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => setVerifyMode('package')}
               >
-                <FileText size={14} /> Kiểm tra Tệp Tin (File / PDF)
+                <FileText size={14} /> Kiểm tra tệp tin (File / PDF)
               </button>
               <button
                 className={`btn btn-sm ${verifyMode === 'manual' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => setVerifyMode('manual')}
               >
-                <FileText size={14} /> Kiểm tra Văn bản thuần
+                <FileText size={14} /> Kiểm tra văn bản thuần
               </button>
             </div>
 
@@ -353,7 +354,7 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
                     <div>
                       <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{docFile.name}</div>
                       <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                        {(docFile.size / 1024).toFixed(1)} KB | Click để đổi file
+                        {(docFile.size / 1024).toFixed(1)} KB | Bấm để đổi tệp
                       </div>
                     </div>
                   ) : (
@@ -362,7 +363,7 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
                         Chọn tệp tin gốc cần xác thực
                       </div>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-                        Hỗ trợ file PDF, Word, Ảnh, Tệp nhị phân...
+                        Hỗ trợ file PDF, Word, Ảnh, tệp nhị phân...
                       </div>
                     </div>
                   )}
@@ -390,7 +391,7 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
                 disabled={isVerifying || !sigPackage}
               >
                 <SearchCheck size={20} />
-                <span>{isVerifying ? 'Đang Thẩm Định Toán Học 3 Lớp...' : 'Tiến Hành Xác Thực Chữ Ký'}</span>
+                <span>{isVerifying ? 'Đang thẩm định toán học 3 lớp...' : 'Tiến hành xác thực chữ ký'}</span>
               </button>
             </div>
           </div>
@@ -422,7 +423,7 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
                   )}
                   <div>
                     <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: verificationResult.isValid ? 'var(--status-success)' : 'var(--status-danger)' }}>
-                      {verificationResult.isValid ? 'CHỮ KÝ HỢP LỆ VÀ TOÀN VẸN' : 'CHỮ KÝ KHÔNG HỢP LỆ / CẢNH BÁO'}
+                      {verificationResult.isValid ? 'CHỮ KÝ HỢP LỆ & TOÀN VẸN' : 'CHỮ KÝ KHÔNG HỢP LỆ / CẢNH BÁO'}
                     </h3>
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                       Xác thực lúc: {new Date(verificationResult.verifiedAt).toLocaleString('vi-VN')}
@@ -431,7 +432,7 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
                 </div>
 
                 <span className={`badge ${verificationResult.isValid ? 'badge-success' : 'badge-danger'}`}>
-                  {verificationResult.isValid ? 'Pass 3/3 Layers' : 'Failed'}
+                  {verificationResult.isValid ? 'Đạt 3/3 lớp' : 'Không đạt'}
                 </span>
               </div>
 

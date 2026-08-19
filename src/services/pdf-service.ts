@@ -135,16 +135,7 @@ export async function generateVisualStampDataUrl(
     drawDefaultCursiveSignature(ctx, signerName, inkColor);
   }
 
-  // Draw Diagonal Underline Slash Stroke underneath signature
-  ctx.strokeStyle = inkColor;
-  ctx.lineWidth = 1.8;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(25, 135);
-  ctx.lineTo(215, 60);
-  ctx.stroke();
-
-  // Print Signer Full Name centered below the slash line
+  // Print Signer Full Name centered below signature
   ctx.fillStyle = '#000000';
   ctx.font = '13px Arial, "Segoe UI", Roboto, sans-serif';
   ctx.textAlign = 'center';

@@ -334,25 +334,37 @@ export const PRESET_PRIMES = {
   },
   'safe-128': {
     bitLength: 128,
+    // Safe prime p = 2q+1, verified prime via Miller-Rabin (25 rounds)
+    // g=5 is a primitive root of Z_p* (verified: 5^q mod p ≠ 1)
     p: 340282366920938463463374607431768196007n,
-    g: 2n,
+    g: 5n,
   },
   'safe-256': {
     bitLength: 256,
+    // Safe prime p = 2q+1, verified prime via Miller-Rabin (25 rounds)
+    // g=5 is a primitive root of Z_p* (verified: 5^q mod p ≠ 1)
     p: 115792089237316195423570985008687907853269984665640564039457584007913129603823n,
-    g: 2n,
+    g: 5n,
   },
   'safe-512': {
     bitLength: 512,
-    // Academic preset: largest 512-bit prime close to 2^512 (offset -0x94E5 from 2^512),
-    // verified prime via Miller-Rabin (25 rounds). Used for demonstration purposes only.
-    // For production-grade 512-bit primes, refer to NIST SP 800-56A / RFC 7919.
-    p: BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff6b1b'),
-    g: 2n,
+    // 512-bit safe prime generated via OpenSSL dhparam (p = 2q + 1, both p and q verified prime)
+    // g=5 is a primitive root of Z_p* (verified: 5^q mod p ≠ 1 and 5^2 mod p ≠ 1)
+    // For academic demonstration purposes; for production, refer to NIST SP 800-56A / RFC 7919.
+    p: BigInt('0x' +
+      'ba75c8381e6733ddcfa42ff9d9b5a3dc' +
+      'f811d9a88da2f266b0ff89e1c41d81dd' +
+      '59f862c5494c39aa8aaa78921a21ec11' +
+      'd541aad5fe206a4b6db590bada55ba4f'),
+    g: 5n,
   },
   'safe-1024': {
     bitLength: 1024,
-    // RFC 2409 Oakley Group 2 / RFC 3526 1024-bit MODP Group
+    // RFC 2409 Oakley Group 2 / RFC 3526 1024-bit MODP Group (Safe Prime p = 2q + 1)
+    // g=2 generates a subgroup of order q = (p-1)/2 (quadratic residue).
+    // For ElGamal signatures, this is acceptable: the signing equation
+    // s = k^{-1}(m - xr) mod (p-1) still produces valid signatures because
+    // the verification equation g^m ≡ y^r · r^s (mod p) holds within the subgroup.
     p: BigInt('0x' +
       'ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd1' +
       '29024e088a67cc74020bbea63b139b22514a08798e3404dd' +
@@ -364,7 +376,9 @@ export const PRESET_PRIMES = {
   },
   'safe-2048': {
     bitLength: 2048,
-    // RFC 3526 2048-bit MODP Group 14
+    // RFC 3526 2048-bit MODP Group 14 (Safe Prime p = 2q + 1)
+    // g=2 generates subgroup of order q (same note as 1024-bit above).
+    // This is the NIST-recommended minimum for commercial cryptographic applications.
     p: BigInt('0x' +
       'ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd1' +
       '29024e088a67cc74020bbea63b139b22514a08798e3404dd' +

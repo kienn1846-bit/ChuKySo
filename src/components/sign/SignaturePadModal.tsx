@@ -34,7 +34,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
   activeCert,
   onNotify,
 }) => {
-  const [tab, setTab] = useState<'draw' | 'upload' | 'calligraphy' | 'config'>('draw');
+  const [tab, setTab] = useState<'draw' | 'upload' | 'config'>('draw');
   const [penColor, setPenColor] = useState<'#1d4ed8' | '#dc2626' | '#0f172a'>('#1d4ed8');
   const [penWidth, setPenWidth] = useState<number>(2.5);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -145,31 +145,6 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
     setHasDrawn(false);
   };
 
-  // Generate Calligraphy signature
-  const generateCalligraphy = (name: string, color: string) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 400;
-    canvas.height = 160;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return '';
-
-    ctx.fillStyle = color;
-    ctx.font = 'italic bold 44px "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(name || 'Nguyễn Văn A', 200, 75);
-
-    // Decorative underline flourish
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(70, 110);
-    ctx.bezierCurveTo(150, 130, 270, 95, 330, 115);
-    ctx.stroke();
-
-    return canvas.toDataURL('image/png');
-  };
-
   // Handle signature file upload
   const handleUploadImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -220,21 +195,12 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
     }
   };
 
-  // Handle Select Calligraphy Signature
-  const handleSelectCalligraphy = () => {
-    const url = generateCalligraphy(signerName, penColor);
-    setSelectedSignatureUrl(url);
-    onNotify('Đã áp dụng mẫu chữ ký thư pháp!', 'success');
-  };
-
   // Apply changes to stampConfig and close
   const handleApply = () => {
     let finalSignatureUrl = selectedSignatureUrl;
 
     if (tab === 'draw' && canvasRef.current && hasDrawn) {
       finalSignatureUrl = canvasRef.current.toDataURL('image/png');
-    } else if (tab === 'calligraphy' && !finalSignatureUrl) {
-      finalSignatureUrl = generateCalligraphy(signerName, penColor);
     }
 
     setStampConfig((prev) => ({
@@ -284,10 +250,10 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
             </div>
             <div>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>
-                Thiết Kế Chữ Ký & Con Dấu Điện Tử (e-Signature Studio)
+                Thiết kế chữ ký & con dấu điện tử
               </h3>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
-                Tạo chữ ký tay, chọn nền trắng/trong suốt và xác lập thông tin chứng thực chuẩn chính phủ/doanh nghiệp
+                Tạo chữ ký tay, chọn nền trắng/trong suốt và xác lập thông tin chứng thực chuẩn văn bản
               </p>
             </div>
           </div>
@@ -303,28 +269,21 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
             onClick={() => setTab('draw')}
           >
             <PenTool size={14} />
-            <span>1. Vẽ Chữ Ký Tay</span>
+            <span>1. Vẽ chữ ký tay</span>
           </button>
           <button
             className={`btn btn-sm ${tab === 'upload' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setTab('upload')}
           >
             <Upload size={14} />
-            <span>2. Tải Ảnh Chữ Ký</span>
-          </button>
-          <button
-            className={`btn btn-sm ${tab === 'calligraphy' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setTab('calligraphy')}
-          >
-            <Sparkles size={14} />
-            <span>3. Chữ Ký Nghệ Thuật</span>
+            <span>2. Tải ảnh chữ ký</span>
           </button>
           <button
             className={`btn btn-sm ${tab === 'config' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setTab('config')}
           >
             <Sliders size={14} />
-            <span>4. Thông Tin & Hiệu Lực</span>
+            <span>3. Thông tin & hiệu lực</span>
           </button>
         </div>
 
@@ -481,96 +440,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
           </div>
         )}
 
-        {/* Tab 3: Calligraphy Generator */}
-        {tab === 'calligraphy' && (
-          <div>
-            <div style={{ marginBottom: '16px' }}>
-              <label className="form-label">Tên người ký hiển thị chữ ký nghệ thuật:</label>
-              <input
-                type="text"
-                className="form-input"
-                value={signerName}
-                onChange={(e) => setSignerName(e.target.value)}
-                placeholder="Nhập họ tên đầy đủ..."
-              />
-            </div>
-
-            <div style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
-              Xem trước mẫu chữ ký thư pháp điện tử:
-            </div>
-
-            <div
-              style={{
-                background: '#ffffff',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '8px',
-                padding: '24px',
-                textAlign: 'center',
-                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.03)',
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: '"Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive, sans-serif',
-                  fontSize: '2.8rem',
-                  fontStyle: 'italic',
-                  fontWeight: 700,
-                  color: penColor,
-                  letterSpacing: '1px',
-                }}
-              >
-                {signerName || 'Nguyễn Văn A'}
-              </div>
-              <div
-                style={{
-                  height: '2px',
-                  width: '180px',
-                  background: penColor,
-                  margin: '8px auto 0',
-                  borderRadius: '2px',
-                  opacity: 0.8,
-                }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', flexWrap: 'wrap', gap: '8px' }}>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Màu mực chữ ký:</span>
-                <button
-                  type="button"
-                  className={`btn btn-sm ${penColor === '#1d4ed8' ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setPenColor('#1d4ed8')}
-                >
-                  Xanh mực
-                </button>
-                <button
-                  type="button"
-                  className={`btn btn-sm ${penColor === '#dc2626' ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setPenColor('#dc2626')}
-                >
-                  Đỏ công vụ
-                </button>
-                <button
-                  type="button"
-                  className={`btn btn-sm ${penColor === '#0f172a' ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setPenColor('#0f172a')}
-                >
-                  Đen tuyền
-                </button>
-              </div>
-
-              <button
-                type="button"
-                className="btn btn-sm btn-success"
-                onClick={handleSelectCalligraphy}
-              >
-                <Check size={14} /> Chọn mẫu chữ ký này
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 4: Form Fields & Legal Validation Info */}
+        {/* Tab 3: Form Fields & Legal Validation Info */}
         {tab === 'config' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '420px', overflowY: 'auto', paddingRight: '4px' }}>
             <div className="grid-2" style={{ gap: '12px' }}>

@@ -12,6 +12,7 @@ const MAX_LOGS = 100;
 class CryptoLoggerService {
   private logs: CryptoLogEntry[] = [];
   private listeners: ((logs: CryptoLogEntry[]) => void)[] = [];
+  private isMuted = false;
 
   constructor() {
     this.loadLogs();
@@ -54,7 +55,29 @@ class CryptoLoggerService {
     return [...this.logs];
   }
 
-  public addLog(entry: Omit<CryptoLogEntry, 'id' | 'timestamp'>): CryptoLogEntry {
+  public mute() {
+    this.isMuted = true;
+  }
+
+  public unmute() {
+    this.isMuted = false;
+  }
+
+  public async runWithoutLogging<T>(fn: () => Promise<T> | T): Promise<T> {
+    const prev = this.isMuted;
+    this.isMuted = true;
+    try {
+      return await fn();
+    } finally {
+      this.isMuted = prev;
+    }
+  }
+
+  public addLog(entry: Omit<CryptoLogEntry, 'id' | 'timestamp'>): CryptoLogEntry | null {
+    if (this.isMuted) {
+      return null;
+    }
+
     const newEntry: CryptoLogEntry = {
       ...entry,
       id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,

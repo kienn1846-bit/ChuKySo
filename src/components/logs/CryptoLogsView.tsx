@@ -21,6 +21,7 @@ import {
   Layers,
   Terminal,
   Cpu,
+  ShieldCheck,
 } from 'lucide-react';
 import { CryptoLogEntry, CryptoLogStep } from '../../types';
 import { cryptoLogger } from '../../services/crypto-logger';
@@ -31,7 +32,7 @@ import {
   elgamal_sign,
   elgamal_verify,
 } from '../../crypto/elgamal';
-import { MathView } from '../common/MathView';
+import { MathView, MathText } from '../common/MathView';
 
 interface CryptoLogsViewProps {
   onNotify: (msg: string, type?: 'success' | 'danger' | 'info') => void;
@@ -181,11 +182,13 @@ export const CryptoLogsView: React.FC<CryptoLogsViewProps> = ({ onNotify }) => {
           <div>
             <h1 className="view-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <ScrollText size={26} color="var(--accent-blue)" />
-              <span>Nhật Ký Thực Thi Thuật Toán (Crypto Execution Logs)</span>
+              <span>Nhật ký thực thi thuật toán</span>
             </h1>
-            <p className="view-description">
-              Theo dõi vết thực thi (Execution Trace) từng bước toán học: Sinh khóa ElGamal, Cấp chứng thư PKI, Ký số $(r, s)$, Thẩm định $v_1 \equiv v_2$, Mã hóa & Giải mã.
-            </p>
+            <div className="view-description" style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '4px' }}>
+              <MathText>
+                Theo dõi vết thực thi từng bước toán học: Sinh khóa ElGamal, Cấp chứng thư PKI, Ký số $(r, s)$, Thẩm định $v_1 \equiv v_2 \pmod p$, Mã hóa &amp; Giải mã.
+              </MathText>
+            </div>
           </div>
 
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -195,122 +198,162 @@ export const CryptoLogsView: React.FC<CryptoLogsViewProps> = ({ onNotify }) => {
               disabled={isRunningDemo}
             >
               <Play size={14} />
-              <span>{isRunningDemo ? 'Đang Chạy...' : 'Chạy Thử Nghiệm Thuật Toán'}</span>
+              <span>{isRunningDemo ? 'Đang chạy...' : 'Chạy thử nghiệm thuật toán'}</span>
             </button>
-            <button className="btn btn-secondary btn-sm" onClick={handleExportLogs}>
+            <button className="btn btn-secondary btn-sm" onClick={handleExportLogs} disabled={logs.length === 0}>
               <Download size={14} />
-              <span>Xuất Báo Cáo</span>
+              <span>Xuất báo cáo</span>
             </button>
             <button className="btn btn-danger btn-sm" onClick={handleClearLogs} disabled={logs.length === 0}>
               <Trash2 size={14} />
-              <span>Xóa Nhật Ký</span>
+              <span>Xóa nhật ký</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Stats Overview Grid */}
-      <div className="grid-4" style={{ marginBottom: '20px', gap: '14px' }}>
-        <div className="stat-card">
-          <div className="stat-label">Tổng Nhật Ký</div>
-          <div className="stat-value" style={{ color: 'var(--accent-cyan)' }}>{logs.length}</div>
-          <div className="stat-desc">Vết tính toán đã lưu</div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-label">Sinh Khóa & PKI</div>
-          <div className="stat-value" style={{ color: 'var(--accent-blue)' }}>
-            {logs.filter((l) => l.category === 'keygen' || l.category === 'pki-issue').length}
+      {/* Stats Overview Grid - only if logs exist */}
+      {logs.length > 0 && (
+        <div className="grid-4" style={{ marginBottom: '20px', gap: '14px' }}>
+          <div className="stat-card">
+            <div className="stat-label">Tổng số nhật ký</div>
+            <div className="stat-value" style={{ color: 'var(--accent-cyan)' }}>{logs.length}</div>
+            <div className="stat-desc">Vết tính toán đã lưu</div>
           </div>
-          <div className="stat-desc">Modulo p, g, x, y</div>
-        </div>
 
-        <div className="stat-card">
-          <div className="stat-label">Ký Số & Xác Thực</div>
-          <div className="stat-value" style={{ color: 'var(--status-success)' }}>
-            {logs.filter((l) => l.category === 'sign' || l.category === 'verify').length}
+          <div className="stat-card">
+            <div className="stat-label">Sinh khóa & PKI</div>
+            <div className="stat-value" style={{ color: 'var(--accent-blue)' }}>
+              {logs.filter((l) => l.category === 'keygen' || l.category === 'pki-issue').length}
+            </div>
+            <div className="stat-desc">Modulo p, g, x, y</div>
           </div>
-          <div className="stat-desc">Cặp (r, s) & v₁ ≡ v₂</div>
-        </div>
 
-        <div className="stat-card">
-          <div className="stat-label">Mã Hóa / Giải Mã</div>
-          <div className="stat-value" style={{ color: 'var(--accent-purple)' }}>
-            {logs.filter((l) => l.category === 'encrypt' || l.category === 'decrypt').length}
+          <div className="stat-card">
+            <div className="stat-label">Ký số & xác thực</div>
+            <div className="stat-value" style={{ color: 'var(--status-success)' }}>
+              {logs.filter((l) => l.category === 'sign' || l.category === 'verify').length}
+            </div>
+            <div className="stat-desc">Cặp (r, s) & v₁ ≡ v₂</div>
           </div>
-          <div className="stat-desc">Khối bản mã (c₁, c₂)</div>
-        </div>
-      </div>
 
-      {/* Filter & Search Bar */}
-      <div
-        className="card"
-        style={{
-          marginBottom: '20px',
-          padding: '14px 20px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px',
-        }}
-      >
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          <button
-            className={`btn btn-sm ${selectedCategory === 'all' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setSelectedCategory('all')}
-          >
-            Tất cả ({logs.length})
-          </button>
-          <button
-            className={`btn btn-sm ${selectedCategory === 'keygen' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setSelectedCategory('keygen')}
-          >
-            Sinh Khóa / PKI
-          </button>
-          <button
-            className={`btn btn-sm ${selectedCategory === 'sign' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setSelectedCategory('sign')}
-          >
-            Ký Số
-          </button>
-          <button
-            className={`btn btn-sm ${selectedCategory === 'verify' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setSelectedCategory('verify')}
-          >
-            Xác Thực
-          </button>
-          <button
-            className={`btn btn-sm ${selectedCategory === 'crypto' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setSelectedCategory('crypto')}
-          >
-            Mã Hóa / Giải Mã
-          </button>
+          <div className="stat-card">
+            <div className="stat-label">Mã hóa / giải mã</div>
+            <div className="stat-value" style={{ color: 'var(--accent-purple)' }}>
+              {logs.filter((l) => l.category === 'encrypt' || l.category === 'decrypt').length}
+            </div>
+            <div className="stat-desc">Khối bản mã (c₁, c₂)</div>
+          </div>
         </div>
+      )}
 
-        <div style={{ minWidth: '240px' }}>
-          <input
-            type="text"
-            className="form-input"
-            style={{ padding: '6px 12px', fontSize: '0.84rem' }}
-            placeholder="Tìm kiếm theo tiêu đề, biến số..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+      {/* Filter & Search Bar - only if logs exist */}
+      {logs.length > 0 && (
+        <div
+          className="card"
+          style={{
+            marginBottom: '20px',
+            padding: '14px 20px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            <button
+              className={`btn btn-sm ${selectedCategory === 'all' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setSelectedCategory('all')}
+            >
+              Tất cả ({logs.length})
+            </button>
+            <button
+              className={`btn btn-sm ${selectedCategory === 'keygen' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setSelectedCategory('keygen')}
+            >
+              Sinh Khóa / PKI
+            </button>
+            <button
+              className={`btn btn-sm ${selectedCategory === 'sign' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setSelectedCategory('sign')}
+            >
+              Ký Số
+            </button>
+            <button
+              className={`btn btn-sm ${selectedCategory === 'verify' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setSelectedCategory('verify')}
+            >
+              Xác Thực
+            </button>
+            <button
+              className={`btn btn-sm ${selectedCategory === 'crypto' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setSelectedCategory('crypto')}
+            >
+              Mã Hóa / Giải Mã
+            </button>
+          </div>
+
+          <div style={{ minWidth: '240px' }}>
+            <input
+              type="text"
+              className="form-input"
+              style={{ padding: '6px 12px', fontSize: '0.84rem' }}
+              placeholder="Tìm kiếm theo tiêu đề, biến số..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Log List */}
-      {filteredLogs.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '48px 20px' }}>
-          <ScrollText size={48} style={{ opacity: 0.3, margin: '0 auto 12px auto' }} />
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Chưa có nhật ký nào phù hợp</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.86rem', maxWidth: '450px', margin: '6px auto 16px auto' }}>
-            Khi bạn thực hiện Ký số, Cấp chứng thư, hoặc Xác thực văn bản, toàn bộ vết thực thi toán học sẽ tự động được ghi lại chi tiết tại đây.
+      {/* Log List / Empty State */}
+      {logs.length === 0 ? (
+        <div
+          className="card"
+          style={{
+            textAlign: 'center',
+            padding: '60px 24px',
+            background: 'linear-gradient(180deg, rgba(6, 182, 212, 0.04), var(--bg-card))',
+            border: '1px dashed var(--border-subtle)',
+            borderRadius: '16px',
+          }}
+        >
+          <div
+            style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              background: 'rgba(6, 182, 212, 0.12)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--accent-cyan)',
+              margin: '0 auto 18px auto',
+            }}
+          >
+            <ScrollText size={32} />
+          </div>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
+            Nhật Ký Thực Thi Đang Trống
+          </h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', maxWidth: '540px', margin: '0 auto 24px auto', lineHeight: 1.6 }}>
+            Hệ thống chỉ ghi vết khi bạn thực hiện các thao tác mật mã học thực tế như <strong>Cấp chứng thư số</strong>, <strong>Ký số tài liệu</strong>, hoặc <strong>Xác thực chữ ký</strong>.
           </p>
-          <button className="btn btn-primary btn-sm" onClick={handleRunInteractiveDemo}>
-            <Play size={14} /> Chạy Thử Nghiệm Thuật Toán Ngay
-          </button>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <button className="btn btn-primary" onClick={handleRunInteractiveDemo} disabled={isRunningDemo}>
+              <Play size={16} />
+              <span>{isRunningDemo ? 'Đang Chạy Thử Nghiệm...' : 'Chạy Thử Nghiệm Thuật Toán Mẫu'}</span>
+            </button>
+          </div>
+        </div>
+      ) : filteredLogs.length === 0 ? (
+        <div className="card" style={{ textAlign: 'center', padding: '40px 20px' }}>
+          <Info size={36} style={{ opacity: 0.4, margin: '0 auto 10px auto' }} />
+          <h4 style={{ fontSize: '1rem', fontWeight: 600 }}>Không tìm thấy nhật ký phù hợp bộ lọc</h4>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.84rem', marginTop: '4px' }}>
+            Vui lòng thử từ khóa tìm kiếm khác hoặc chuyển danh mục.
+          </p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -323,6 +366,7 @@ export const CryptoLogsView: React.FC<CryptoLogsViewProps> = ({ onNotify }) => {
                 style={{
                   border: isExpanded ? '1px solid var(--accent-blue)' : '1px solid var(--border-subtle)',
                   transition: 'all 0.2s ease',
+                  padding: '18px 20px',
                 }}
               >
                 {/* Log Item Header */}
@@ -359,8 +403,8 @@ export const CryptoLogsView: React.FC<CryptoLogsViewProps> = ({ onNotify }) => {
                 {/* Expanded Details: Step-by-Step Math Breakdown */}
                 {isExpanded && (
                   <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
-                    <div style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginBottom: '14px' }}>
-                      {log.description}
+                    <div style={{ fontSize: '0.86rem', color: 'var(--text-muted)', marginBottom: '14px', lineHeight: 1.5 }}>
+                      <MathText>{log.description}</MathText>
                     </div>
 
                     {/* Timeline of Steps */}
@@ -371,27 +415,29 @@ export const CryptoLogsView: React.FC<CryptoLogsViewProps> = ({ onNotify }) => {
                           style={{
                             background: 'var(--bg-input)',
                             borderRadius: '8px',
-                            padding: '12px 16px',
+                            padding: '14px 16px',
                             borderLeft: '3px solid var(--accent-blue)',
+                            border: '1px solid var(--border-subtle)',
+                            borderLeftWidth: '3px',
                           }}
                         >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--accent-cyan)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--accent-cyan)' }}>
                               Bước {step.stepNumber}: {step.name}
                             </div>
                             {step.formula && (
-                              <span style={{ fontSize: '0.8rem', background: 'rgba(59, 130, 246, 0.15)', padding: '2px 8px', borderRadius: '4px', color: 'var(--accent-blue)', fontFamily: 'monospace' }}>
-                                {step.formula}
-                              </span>
+                              <div style={{ fontSize: '0.82rem', background: 'rgba(59, 130, 246, 0.12)', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(59, 130, 246, 0.25)', color: 'var(--accent-blue)' }}>
+                                <MathView math={step.formula} />
+                              </div>
                             )}
                           </div>
 
-                          <div style={{ fontSize: '0.82rem', color: 'var(--text-main)', marginBottom: '8px' }}>
-                            {step.description}
+                          <div style={{ fontSize: '0.84rem', color: 'var(--text-main)', marginBottom: '10px' }}>
+                            <MathText>{step.description}</MathText>
                           </div>
 
                           {/* Variable breakdown */}
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: 'rgba(0,0,0,0.2)', padding: '8px 12px', borderRadius: '6px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', background: 'rgba(0,0,0,0.25)', padding: '10px 14px', borderRadius: '6px' }}>
                             {Object.entries(step.variables).map(([key, val]) => (
                               <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.78rem', gap: '10px' }}>
                                 <span style={{ color: 'var(--text-muted)', fontWeight: 600, minWidth: '140px' }}>
