@@ -4,9 +4,9 @@
 
 <img src="public/favicon.svg" alt="ChuKySo Logo" width="96" height="96" />
 
-### Hệ Thống Chữ Ký Số ElGamal & Hạ Tầng Khóa Công Khai (PKI) Chuẩn Doanh Nghiệp
+### Hệ Thống Chữ Ký Số ElGamal & Hạ Tầng Khóa Công Khai (PKI) 
 
-Một bộ giải pháp mật mã học toàn diện triển khai **Chữ ký số ElGamal** t, tích hợp quản lý **Hạ tầng khóa công khai (PKI)**, ký số trực tiếp trên tài liệu PDF với con dấu điện tử tùy biến, thẩm định chữ ký 3 lớp, phòng thí nghiệm mật mã tương tác và mô phỏng các lỗ hổng bảo mật kinh điển.
+Một bộ giải pháp mật mã học toàn diện triển khai **Chữ ký số ElGamal**, tích hợp quản lý **Hạ tầng khóa công khai (PKI)**, ký số trực tiếp trên tài liệu PDF với con dấu điện tử tùy biến, thẩm định chữ ký 3 lớp, phòng thí nghiệm mật mã tương tác và mô phỏng các lỗ hổng bảo mật kinh điển.
 
 [![React](https://img.shields.io/badge/React-19.x-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x%20%2F%206.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -128,7 +128,7 @@ ChuKySo kiểm tra và xác thực chữ ký số thông qua ba lớp ranh giớ
 - Tự động tính toán vân tay chứng thư số SHA-256 và ký duyệt chứng thư bằng khóa bí mật của Root CA.
 - Xuất/nhập chứng thư số dưới định dạng JSON chuẩn cấu trúc.
 
-### 🔬 Phòng thí nghiệm mật mã tương tác (Crypto Lab)
+### 🔬 Tính toán cơ sở toán học trực quan
 - **Truy vết từng bước tính toán**: Quan sát chi tiết các tham số nội bộ ($p, \alpha, x, y, k, r, s, k^{-1}$) được kết xuất trực quan bằng KaTeX LaTeX.
 - **Bảng vết thuật toán Euclid mở rộng**: Bảng tính thương số - số dư từng bước chi tiết giải thích cách tìm phần tử nghịch đảo $k^{-1} \pmod{p-1}$.
 - **Mã hóa & Giải mã bất đối xứng**: Minh họa lược đồ mật mã ElGamal hoàn chỉnh ($c_1 = \alpha^k \bmod p, c_2 = M \cdot y^k \bmod p$).
