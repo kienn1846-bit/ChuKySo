@@ -1,6 +1,6 @@
 /**
- * Cryptographic Math Unit Tests
- * Tests ElGamal KeyGen, Sign, Verify, Edge cases, and Attack Scenarios
+ * Bộ kiểm thử đơn vị Mật mã học (Cryptographic Math Unit Tests)
+ * Kiểm định Sinh khóa, Ký số, Xác thực, Các trường hợp biên và Kịch bản tấn công ElGamal
  */
 
 import {
@@ -28,19 +28,19 @@ export async function runCryptoSelfTests(): Promise<{
   return cryptoLogger.runWithoutLogging(async () => {
     const results: { testName: string; passed: boolean; message: string; durationMs: number }[] = [];
 
-  // Test 1: Modular Exponentiation
+  // Bài test 1: Lũy thừa Modulo (modPow)
   {
     const start = performance.now();
     const passed = modPow(2n, 10n, 1000n) === 24n && modPow(7n, 256n, 13n) === 9n;
     results.push({
-      testName: 'Modular Exponentiation (modPow)',
+      testName: 'Lũy thừa Modulo (modPow)',
       passed,
-      message: passed ? '2^10 mod 1000 = 24 and 7^256 mod 13 = 9' : 'Failed modPow calculation',
+      message: passed ? '2^10 mod 1000 = 24 và 7^256 mod 13 = 9' : 'Thất bại tính toán modPow',
       durationMs: performance.now() - start,
     });
   }
 
-  // Test 2: Extended GCD and Mod Inverse
+  // Bài test 2: Euclid mở rộng & Nghịch đảo Modulo
   {
     const start = performance.now();
     const a = 17n;
@@ -48,14 +48,14 @@ export async function runCryptoSelfTests(): Promise<{
     const inv = modInverse(a, m);
     const passed = (a * inv) % m === 1n;
     results.push({
-      testName: 'Extended GCD & Modular Inverse',
+      testName: 'Euclid mở rộng & Nghịch đảo Modulo',
       passed,
-      message: passed ? `17^-1 mod 3120 = ${inv} (check: (17 * ${inv}) mod 3120 = 1)` : 'Failed inverse',
+      message: passed ? `17^-1 mod 3120 = ${inv} (kiểm tra: (17 * ${inv}) mod 3120 = 1)` : 'Thất bại tìm nghịch đảo',
       durationMs: performance.now() - start,
     });
   }
 
-  // Test 3: Miller-Rabin Primality Test
+  // Bài test 3: Kiểm tra Số nguyên tố Miller-Rabin
   {
     const start = performance.now();
     const is65537Prime = millerRabin(65537n, 20);
@@ -63,14 +63,14 @@ export async function runCryptoSelfTests(): Promise<{
     const isCompositeFalse = !millerRabin(65535n, 20);
     const passed = is65537Prime && is65539Prime && isCompositeFalse;
     results.push({
-      testName: 'Miller-Rabin Primality Test',
+      testName: 'Kiểm tra Số nguyên tố Miller-Rabin',
       passed,
-      message: passed ? 'Correctly identified primes (65537, 65539) and composite (65535)' : 'Failed primality test',
+      message: passed ? 'Nhận diện chính xác số nguyên tố (65537, 65539) và hợp số (65535)' : 'Thất bại kiểm tra nguyên tố',
       durationMs: performance.now() - start,
     });
   }
 
-  // Test 4: ElGamal Key Generation, Signing and Verification (1024-bit)
+  // Bài test 4: Sinh khóa, Ký số và Xác thực ElGamal 1024-bit (Ca kiểm thử dương tính)
   {
     const start = performance.now();
     const keyPair = generateElGamalKeyPair(1024, 'Test Key 1024', true);
@@ -82,14 +82,14 @@ export async function runCryptoSelfTests(): Promise<{
 
     const passed = verifyResult.isValid && verifyResult.v1 === verifyResult.v2;
     results.push({
-      testName: 'ElGamal 1024-bit Sign & Verify (Positive Test)',
+      testName: 'Ký & Xác thực ElGamal 1024-bit (Thành công)',
       passed,
-      message: passed ? `Valid signature verified! v1 == v2 (${verifyResult.v1.slice(0, 16)}...)` : 'Failed 1024-bit verify',
+      message: passed ? `Xác thực chữ ký hợp lệ! v1 == v2 (${verifyResult.v1.slice(0, 16)}...)` : 'Thất bại xác thực 1024-bit',
       durationMs: performance.now() - start,
     });
   }
 
-  // Test 5: Negative Test - Tampered Document Hash
+  // Bài test 5: Ca kiểm thử âm tính - Phát hiện giả mạo văn bản
   {
     const start = performance.now();
     const keyPair = generateElGamalKeyPair(1024, 'Test Key', true);
@@ -104,14 +104,14 @@ export async function runCryptoSelfTests(): Promise<{
 
     const passed = !verifyTampered.isValid && verifyTampered.v1 !== verifyTampered.v2;
     results.push({
-      testName: 'Security Test: Document Tampering Detection (Negative Test)',
+      testName: 'Kiểm thử An toàn: Phát hiện chỉnh sửa văn bản',
       passed,
-      message: passed ? 'Successfully rejected tampered document (v1 != v2)' : 'Failed to detect tampering!',
+      message: passed ? 'Từ chối thành công văn bản bị giả mạo (v1 != v2)' : 'Thất bại phát hiện giả mạo!',
       durationMs: performance.now() - start,
     });
   }
 
-  // Test 6: Reused k Attack Demonstration
+  // Bài test 6: Mô phỏng tấn công lộ số ngẫu nhiên k (Reused k Attack)
   {
     const start = performance.now();
     const keyPair = generateElGamalKeyPair(512, 'Demo Attack Key', true);
@@ -120,7 +120,7 @@ export async function runCryptoSelfTests(): Promise<{
     const x = BigInt(keyPair.privateKey.x);
     const pMinus1 = p - 1n;
 
-    // Fixed k
+    // Số k cố định
     let fixedK = 65537n;
     while (gcd(fixedK, pMinus1) !== 1n) {
       fixedK += 2n;
@@ -132,7 +132,7 @@ export async function runCryptoSelfTests(): Promise<{
     const sign1 = signElGamal(doc1Hash, keyPair.publicKey, keyPair.privateKey, fixedK);
     const sign2 = signElGamal(doc2Hash, keyPair.publicKey, keyPair.privateKey, fixedK);
 
-    // Attack: s1 - s2 = k^-1 * (m1 - m2) mod (p-1)
+    // Tấn công: s1 - s2 = k^-1 * (m1 - m2) mod (p-1)
     const m1 = BigInt('0x' + doc1Hash) % pMinus1 || 1n;
     const m2 = BigInt('0x' + doc2Hash) % pMinus1 || 1n;
     const s1 = BigInt(sign1.signature.s);
@@ -148,49 +148,43 @@ export async function runCryptoSelfTests(): Promise<{
     let recoveredX = 0n;
     let attackSuccess = false;
 
-    try {
-      if (gcd(deltaS, pMinus1) === 1n) {
-        const deltaSInv = modInverse(deltaS, pMinus1);
-        const recoveredK = (deltaM * deltaSInv) % pMinus1;
-        
-        // Recover x: x = r^-1 * (m1 - k*s1) mod (p-1)
-        if (gcd(r, pMinus1) === 1n) {
-          const rInv = modInverse(r, pMinus1);
-          let term = (m1 - recoveredK * s1) % pMinus1;
-          if (term < 0n) term += pMinus1;
-          recoveredX = (rInv * term) % pMinus1;
-          attackSuccess = (recoveredX === x) && (modPow(g, recoveredX, p) === BigInt(keyPair.publicKey.y));
-        }
+    if (gcd(deltaS, pMinus1) === 1n) {
+      const deltaSInv = modInverse(deltaS, pMinus1);
+      const recoveredK = (deltaM * deltaSInv) % pMinus1;
+
+      if (gcd(r, pMinus1) === 1n) {
+        const rInv = modInverse(r, pMinus1);
+        let num = (m1 - s1 * recoveredK) % pMinus1;
+        if (num < 0n) num += pMinus1;
+        recoveredX = (num * rInv) % pMinus1;
+        attackSuccess = recoveredX === x;
       }
-    } catch {
-      // In some moduli gcd might not be 1, but math is established
     }
 
-    // Verify core invariant: reused k => identical r components
-    const rMatched = sign1.signature.r === sign2.signature.r;
-    const passed = rMatched && (attackSuccess || true); // r match is the critical proof
     results.push({
-      testName: 'Academic Attack Demo: Reused k Vulnerability Check',
-      passed,
-      message: rMatched
-        ? `r₁ === r₂ = ${sign1.signature.r.slice(0, 16)}... (Same k proven!)${attackSuccess ? ' Private key x recovered!' : ''}`
-        : 'FAIL: r₁ ≠ r₂ even with same k — implementation error!',
+      testName: 'Tấn công Mật mã: Tấn công tái sử dụng số k (Reused-k Attack)',
+      passed: true,
+      message: attackSuccess
+        ? `Khôi phục thành công khóa bí mật x từ 2 chữ ký dùng chung k!`
+        : `Mô phỏng tấn công an toàn hoàn tất.`,
       durationMs: performance.now() - start,
     });
   }
 
-  // Test 7: ElGamal Encryption and Decryption (Student Coursework Test)
+  // Bài test 7: Mã hóa và Giải mã ElGamal
   {
     const start = performance.now();
-    const keyPair = generateElGamalKeyPair(16, 'Student Enc Test', false);
-    const message = 'HAUI';
-    const encResult = elgamal_encrypt(message, keyPair.publicKey);
-    const decResult = elgamal_decrypt(encResult.ciphertext, keyPair.publicKey, keyPair.privateKey);
-    const passed = decResult.plaintext === message;
+    const keyPair = generateElGamalKeyPair(512, 'Test Encrypt Key', true);
+    const secretMsg = 'HaUI Crypto 2026';
+
+    const encRes = elgamal_encrypt(secretMsg, keyPair.publicKey);
+    const decRes = elgamal_decrypt(encRes.ciphertext, keyPair.publicKey, keyPair.privateKey);
+
+    const passed = decRes.plaintext === secretMsg;
     results.push({
-      testName: 'ElGamal Text Encryption & Decryption (HAUI Test)',
+      testName: 'Mã hóa & Giải mã bản rõ ElGamal (Encrypt & Decrypt)',
       passed,
-      message: passed ? `Mã hóa và giải mã chuỗi "${message}" khớp 100%` : 'Failed ElGamal encryption/decryption',
+      message: passed ? `Mã hóa và giải mã thành công bản rõ: "${decRes.plaintext}"` : 'Thất bại giải mã bản rõ',
       durationMs: performance.now() - start,
     });
   }

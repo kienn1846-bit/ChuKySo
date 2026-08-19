@@ -1,20 +1,14 @@
-/**
- * ============================================================================
- * ĐỒ ÁN MÔN HỌC: AN TOÀN VÀ BẢO MẬT THÔNG TIN - ĐẠI HỌC CÔNG NGHIỆP HÀ NỘI
- * MODULE SỐ HỌC SỐ NGUYÊN LỚN (BIGINT NUMBER THEORY ENGINE)
- * ============================================================================
- */
+/* MODULE SỐ HỌC SỐ NGUYÊN LỚN */
 
 import { EuclidStep } from '../types';
 
 /**
- * 1. THUẬT TOÁN LŨY THỪA NHỊ PHÂN / LŨY THỪA MODULO (SQUARE-AND-MULTIPLY)
- * Tính: (a^b) mod n với độ phức tạp thời gian O(log b)
+ * 1. Thuật toán bình phương và nhân
  */
 export function binaryPower(a: bigint, b: bigint, n: bigint): bigint {
   if (n === 1n) return 0n;
   if (n <= 0n) throw new Error('Modulo n phải là số nguyên dương!');
-  
+
   let res = 1n;
   let base = ((a % n) + n) % n;
   let exp = b;
@@ -38,7 +32,7 @@ export function binaryPower(a: bigint, b: bigint, n: bigint): bigint {
 export const modPow = binaryPower;
 
 /**
- * 2. THUẬT TOÁN EUCLID TÌM ƯỚC CHUNG LỚN NHẤT: gcd(a, b)
+ * 2. Thuật toán tìm ước số chung lớn nhất
  */
 export function gcd(a: bigint, b: bigint): bigint {
   let x = a < 0n ? -a : a;
@@ -52,9 +46,7 @@ export function gcd(a: bigint, b: bigint): bigint {
 }
 
 /**
- * 3. THUẬT TOÁN EUCLID MỞ RỘNG (EXTENDED EUCLIDEAN ALGORITHM)
- * Tìm gcd(a, b) và các hệ số x, y thoả mãn đẳng thức Bézout:
- *     a*x + b*y = gcd(a, b)
+ * 3. Thuật toán Euclid mở rộng
  */
 export function extendedGCD(a: bigint, b: bigint): {
   gcd: bigint;
@@ -114,15 +106,13 @@ export function extendedGCD(a: bigint, b: bigint): {
     steps,
   };
 }
-
-// Alias theo mã nguồn Python của sinh viên
 export function extended_gcd(a: bigint, b: bigint): [bigint, bigint, bigint] {
   const res = extendedGCD(a, b);
   return [res.gcd, res.x, res.y];
 }
 
 /**
- * 4. TÌM PHẦN TỬ NGHỊCH ĐẢO MODULO (MODULAR INVERSE)
+ * 4. Tìm phần tử nghịch đảo Modulo
  * Tìm x sao cho: (a * x) mod n = 1
  * Điều kiện tồn tại: gcd(a, n) = 1
  */
@@ -130,18 +120,18 @@ export function modInverse(a: bigint, n: bigint): bigint {
   if (n <= 1n) throw new Error('Modulo n phải lớn hơn 1');
   const normalizedA = ((a % n) + n) % n;
   const { gcd: g, x } = extendedGCD(normalizedA, n);
-  
+
   if (g !== 1n) {
     throw new Error(`Không tồn tại nghịch đảo modulo cho ${a} mod ${n} (gcd=${g} != 1)`);
   }
-  
+
   return ((x % n) + n) % n;
 }
 
 export const mod_inverse = modInverse;
 
 /**
- * 5. SINH SỐ NGUYÊN LỚN NGẪU NHIÊN BẢO MẬT TRONG KHOẢNG [min, max]
+ * 5. Sinh số nguyên lớn ngẫu nhiên
  */
 export function randomBigInt(min: bigint, max: bigint): bigint {
   if (min > max) throw new Error('min phải nhỏ hơn hoặc bằng max');
@@ -166,7 +156,7 @@ export function randomBigInt(min: bigint, max: bigint): bigint {
 }
 
 /**
- * 6. THUẬT TOÁN KIỂM TRA SỐ NGUYÊN TỐ MILLER-RABIN (check)
+ * 6. Thuật toán kiểm tra số nguyên tố Miller-Rabin
  * Phân tích: n - 1 = 2^r * d với d lẻ.
  * Chọn ngẫu nhiên 'a' trong khoảng [2, n-2], kiểm tra x = a^d mod n
  */
@@ -212,7 +202,7 @@ export function millerRabin(n: bigint, k = 20): boolean {
 export const check = millerRabin;
 
 /**
- * 7. SINH SỐ NGUYÊN TỐ LỚN NGẪU NHIÊN (generate_large_prime)
+ * 7. Sinh số nguyên tố lớn ngẫu nhiên (generate_large_prime)
  */
 export function generateLargePrime(bits = 16): bigint {
   if (bits < 4) throw new Error('Số bit phải >= 4');
@@ -232,7 +222,7 @@ export const generate_large_prime = generateLargePrime;
 export const generatePrime = generateLargePrime;
 
 /**
- * 8. PHÂN TÍCH THỪA SỐ NGUYÊN TỐ (phanTichSNT)
+ * 8. Phân tích thừa số nguyên tố (phanTichSNT)
  * Trả về tập hợp các ước nguyên tố phân biệt của n
  */
 export function phanTichSNT(n: bigint): Set<bigint> {
@@ -267,7 +257,7 @@ export function phanTichSNT(n: bigint): Set<bigint> {
 }
 
 /**
- * 9. TÌM PHẦN TỬ SINH (timPTSinh / Generator Finder)
+ * 9. Tìm phần tử sinh (timPTSinh / Generator Finder)
  * Tìm a trong Z_p* sao cho: a^((p-1)/q) != 1 mod p với mọi ước nguyên tố q của p-1
  */
 export function timPTSinh(p: bigint): bigint {
@@ -301,8 +291,8 @@ export const findPrimitiveRoot = timPTSinh;
  * 10. SINH SỐ NGUYÊN TỐ AN TOÀN (SAFE PRIME: p = 2q + 1)
  */
 export function generateSafePrime(bitLength: number): { p: bigint; q: bigint } {
-  if (bitLength < 6) throw new Error('Bit length for safe prime should be >= 6');
-  
+  if (bitLength < 6) throw new Error('Số bit phải >= 6');
+
   while (true) {
     const q = generateLargePrime(bitLength - 1);
     const p = 2n * q + 1n;
@@ -313,8 +303,8 @@ export function generateSafePrime(bitLength: number): { p: bigint; q: bigint } {
 }
 
 /**
- * Standard Preset Safe Primes for fast demonstration (RFC 2409, RFC 3526 & Academic presets)
- * All primes p satisfy: p = 2q + 1 where both p and q are prime (Safe Primes)
+ * Danh sách số nguyên tố an toàn cấu hình sẵn (PRESET_PRIMES) phục vụ thử nghiệm số học nhanh
+ * Thỏa mãn điều kiện: p = 2q + 1 với cả p và q đều là số nguyên tố (Safe Primes)
  */
 export const PRESET_PRIMES = {
   'demo-16': {
@@ -334,23 +324,22 @@ export const PRESET_PRIMES = {
   },
   'safe-128': {
     bitLength: 128,
-    // Safe prime p = 2q+1, verified prime via Miller-Rabin (25 rounds)
-    // g=5 is a primitive root of Z_p* (verified: 5^q mod p ≠ 1)
+    // Số nguyên tố an toàn p = 2q + 1, đã thẩm định nguyên tố qua Miller-Rabin (25 vòng)
+    // g = 5 là phần tử sinh của nhóm Z_p* (Đã kiểm tra: 5^q mod p != 1)
     p: 340282366920938463463374607431768196007n,
     g: 5n,
   },
   'safe-256': {
     bitLength: 256,
-    // Safe prime p = 2q+1, verified prime via Miller-Rabin (25 rounds)
-    // g=5 is a primitive root of Z_p* (verified: 5^q mod p ≠ 1)
+    // Số nguyên tố an toàn p = 2q + 1, đã thẩm định nguyên tố qua Miller-Rabin (25 vòng)
+    // g = 5 là phần tử sinh của nhóm Z_p* (Đã kiểm tra: 5^q mod p != 1)
     p: 115792089237316195423570985008687907853269984665640564039457584007913129603823n,
     g: 5n,
   },
   'safe-512': {
     bitLength: 512,
-    // 512-bit safe prime generated via OpenSSL dhparam (p = 2q + 1, both p and q verified prime)
-    // g=5 is a primitive root of Z_p* (verified: 5^q mod p ≠ 1 and 5^2 mod p ≠ 1)
-    // For academic demonstration purposes; for production, refer to NIST SP 800-56A / RFC 7919.
+    // Số nguyên tố an toàn 512-bit sinh qua OpenSSL dhparam (p = 2q + 1)
+    // g = 5 là phần tử sinh của nhóm Z_p* (Đã thẩm định: 5^q mod p != 1 và 5^2 mod p != 1)
     p: BigInt('0x' +
       'ba75c8381e6733ddcfa42ff9d9b5a3dc' +
       'f811d9a88da2f266b0ff89e1c41d81dd' +
@@ -360,11 +349,8 @@ export const PRESET_PRIMES = {
   },
   'safe-1024': {
     bitLength: 1024,
-    // RFC 2409 Oakley Group 2 / RFC 3526 1024-bit MODP Group (Safe Prime p = 2q + 1)
-    // g=2 generates a subgroup of order q = (p-1)/2 (quadratic residue).
-    // For ElGamal signatures, this is acceptable: the signing equation
-    // s = k^{-1}(m - xr) mod (p-1) still produces valid signatures because
-    // the verification equation g^m ≡ y^r · r^s (mod p) holds within the subgroup.
+    // RFC 2409 Oakley Group 2 / RFC 3526 1024-bit MODP Group (Số nguyên tố an toàn p = 2q + 1)
+    // g = 2 sinh ra nhóm con cấp q = (p-1)/2. Phù hợp cho bài tập lớn và ứng dụng mật mã ElGamal.
     p: BigInt('0x' +
       'ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd1' +
       '29024e088a67cc74020bbea63b139b22514a08798e3404dd' +
@@ -376,9 +362,8 @@ export const PRESET_PRIMES = {
   },
   'safe-2048': {
     bitLength: 2048,
-    // RFC 3526 2048-bit MODP Group 14 (Safe Prime p = 2q + 1)
-    // g=2 generates subgroup of order q (same note as 1024-bit above).
-    // This is the NIST-recommended minimum for commercial cryptographic applications.
+    // RFC 3526 2048-bit MODP Group 14 (Số nguyên tố an toàn p = 2q + 1)
+    // Đáp ứng tiêu chuẩn khuyến nghị mật mã thương mại của NIST SP 800-56A.
     p: BigInt('0x' +
       'ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd1' +
       '29024e088a67cc74020bbea63b139b22514a08798e3404dd' +

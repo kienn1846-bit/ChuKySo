@@ -1,16 +1,16 @@
 /**
- * Type definitions for SignWCert - ElGamal Digital Signature & PKI System
+ * Định nghĩa các kiểu dữ liệu (Type Definitions) cho Hệ thống Ký số Văn bản ElGamal & PKI
  */
 
 export interface ElGamalPublicKey {
-  p: string; // Prime modulus (as decimal or hex string)
-  g: string; // Generator / Primitive root (alpha)
-  y: string; // Public key component (y = g^x mod p)
+  p: string; // Modulo số nguyên tố p (chuỗi thập phân hoặc hex)
+  g: string; // Phần tử sinh / Căn nguyên thủy (alpha)
+  y: string; // Thành phần khóa công khai (y = g^x mod p)
   bitLength: number;
 }
 
 export interface ElGamalPrivateKey {
-  x: string; // Private key exponent (x in [2, p-2])
+  x: string; // Số mũ khóa bí mật (x nằm trong khoảng [2, p-2])
 }
 
 export interface ElGamalKeyPair {
@@ -23,15 +23,15 @@ export interface ElGamalKeyPair {
 }
 
 export interface ElGamalSignature {
-  r: string; // Signature component 1: r = g^k mod p
-  s: string; // Signature component 2: s = k^-1 * (m - x*r) mod (p-1)
-  algorithm: string; // e.g. "ElGamal-SHA256"
-  documentHash: string; // Hex string of document hash
+  r: string; // Thành phần chữ ký thứ nhất: r = g^k mod p
+  s: string; // Thành phần chữ ký thứ hai: s = k^-1 * (m - x*r) mod (p-1)
+  algorithm: string; // VD: "ElGamal-SHA256"
+  documentHash: string; // Chuỗi Hex mã băm của văn bản
   timestamp: number;
 }
 
 export interface CertificateSubject {
-  commonName: string; // Họ và tên
+  commonName: string; // Họ và tên người sử dụng
   organization: string; // Trường / Viện / Tổ chức
   department?: string; // Khoa / Bộ phận
   email: string;
@@ -51,11 +51,11 @@ export interface DigitalCertificate {
   serialNumber: string;
   subject: CertificateSubject;
   issuer: CertificateIssuer;
-  validFrom: string; // ISO Date string
-  validTo: string; // ISO Date string
+  validFrom: string; // Ngày hiệu lực
+  validTo: string; // Ngày hết hạn
   publicKey: ElGamalPublicKey;
   keyUsage: string[];
-  thumbprint: string; // SHA-256 Fingerprint of certificate body
+  thumbprint: string; // Mã băm vân tay SHA-256 của chứng thư
   caSignature: {
     r: string;
     s: string;
@@ -77,8 +77,8 @@ export interface VisualStampConfig {
   validFromDate?: string;
   validToDate?: string;
   pageNumber: number;
-  xPercent: number; // 0 - 100% relative to page width
-  yPercent: number; // 0 - 100% relative to page height
+  xPercent: number; // 0 - 100% so với chiều rộng trang PDF
+  yPercent: number; // 0 - 100% so với chiều cao trang PDF
   color: 'crimson' | 'blue' | 'emerald' | 'amber' | 'slate';
   showQrCode: boolean;
   style: 'official-seal' | 'handwritten-stamp' | 'modern-badge' | 'minimal-tag';
@@ -92,7 +92,7 @@ export interface SignedDocumentPackage {
   fileName: string;
   fileSize: number;
   fileType: string;
-  documentHash: string; // SHA-256
+  documentHash: string; // Mã băm SHA-256
   signature: ElGamalSignature;
   certificate: DigitalCertificate;
   visualStamp?: VisualStampConfig;
@@ -118,7 +118,7 @@ export interface VerificationResult {
     y: string;
     r: string;
     s: string;
-    m: string; // Hash mapped to BigInt
+    m: string; // Mã băm chuyển thành số BigInt
     v1: string; // v1 = g^m mod p
     v2: string; // v2 = (y^r * r^s) mod p
     isEqual: boolean;

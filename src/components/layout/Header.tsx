@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'pki', label: 'Chứng thư số & CA', icon: Award },
     { id: 'sign', label: 'Ký số văn bản', icon: FileSignature },
     { id: 'verify', label: 'Xác thực chữ ký', icon: SearchCheck },
-    { id: 'lab', label: 'Phòng TN toán', icon: FlaskConical },
+    { id: 'lab', label: 'Cơ sở toán học', icon: BookOpen },
   ];
 
   return (

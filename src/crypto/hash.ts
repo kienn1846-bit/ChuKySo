@@ -1,9 +1,9 @@
 /**
- * Cryptographic Hash Functions & Digest-to-BigInt Mapping
+ * Các hàm băm mật mã (Cryptographic Hash Functions) & Chuyển đổi mã băm sang số BigInt
  */
 
 /**
- * Hash raw byte array with SHA-256 or SHA-512
+ * Băm mảng byte dữ liệu thô bằng thuật toán SHA-256 hoặc SHA-512
  */
 export async function hashBuffer(
   data: Uint8Array | ArrayBuffer,
@@ -16,7 +16,7 @@ export async function hashBuffer(
 }
 
 /**
- * Hash a UTF-8 string with SHA-256 or SHA-512
+ * Băm chuỗi ký tự UTF-8 bằng thuật toán SHA-256 hoặc SHA-512
  */
 export async function hashString(
   text: string,
@@ -28,7 +28,7 @@ export async function hashString(
 }
 
 /**
- * Hash a File with chunking for large files (Browser File object)
+ * Băm tập tin (File) theo khối dữ liệu trong môi trường trình duyệt
  */
 export async function hashFile(
   file: File,
@@ -41,30 +41,31 @@ export async function hashFile(
 }
 
 /**
- * Map a SHA-256 Hex Hash string to a BigInt modulo (p - 1) for ElGamal Signature
- * Ensures: 1 <= m <= p - 2
+ * Chuyển đổi chuỗi băm Hex SHA-256 thành số nguyên thuộc modulo (p - 1)
+ * Đảm bảo giá trị nằm trong khoảng: 1 <= m <= p - 2
  */
 export function hashToBigIntMod(hashHex: string, modulusMinus1: bigint): bigint {
+  // Kiểm tra: (p - 1) phải lớn hơn 1 (tức là p phải >= 3)
   if (modulusMinus1 <= 1n) {
-    throw new Error('Modulus minus 1 must be > 1');
+    throw new Error('Modulo minus 1 phải lớn hơn 1');
   }
 
-  // Convert Hex string directly to BigInt
+  // Chuyển đổi trực tiếp chuỗi Hex sang số nguyên BigInt
   const rawBigInt = BigInt('0x' + hashHex);
-  
-  // Reduce modulo (p - 1)
+
+  // Rút gọn Modulo (p - 1)
   let m = rawBigInt % modulusMinus1;
-  
-  // In the unlikely case m == 0, set m = 1 to keep in Z_{p-1}^*
+
+  // Trường hợp hiếm m == 0, gán m = 1 để đảm bảo 1 <= m <= p-2
   if (m === 0n) {
     m = 1n;
   }
-  
+
   return m;
 }
 
 /**
- * Calculate SHA-256 thumbprint for Certificate display (colon-separated uppercase)
+ * Tính dấu bản quyền/vân tay SHA-256 (Thumbprint) cho Chứng thư số (Định dạng Hex viết hoa cách bởi dấu hai chấm)
  */
 export async function getThumbprint(data: string | Uint8Array): Promise<string> {
   const hex = typeof data === 'string' ? await hashString(data) : await hashBuffer(data);

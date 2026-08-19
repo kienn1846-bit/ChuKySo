@@ -384,7 +384,7 @@ export const ElGamalLabView: React.FC = () => {
         <div>
           <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
             <FlaskConical size={24} color="var(--accent-cyan)" />
-            <span>Phòng Lab Toán Học Số Học Modulo (Math Sandbox)</span>
+            <span>Cơ Sở Toán Học Số Học Modulo</span>
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginTop: '6px', margin: 0 }}>
             Công cụ tính tay, mô phỏng thuật toán Euclid mở rộng, lũy thừa nhị phân và kiểm tra phần tử sinh.
@@ -1044,9 +1044,9 @@ export const ElGamalLabView: React.FC = () => {
                   <tr>
                     <th>Cỡ Khoá</th>
                     <th>Modulus (p)</th>
-                    <th>Vét Cạn</th>
-                    <th>Baby-Step Giant-Step O(√p)</th>
-                    <th>Index Calculus (NFS)</th>
+                    <th>Vét Cạn (Brute Force)</th>
+                    <th>Bước Nhỏ - Bước Lớn (Baby-Step Giant-Step) O(√p)</th>
+                    <th>Giải Tích Chỉ Số (Index Calculus / NFS)</th>
                     <th>Đánh Giá An Toàn</th>
                   </tr>
                 </thead>

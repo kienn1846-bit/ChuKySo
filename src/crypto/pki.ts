@@ -1,7 +1,7 @@
 /**
- * PKI & Digital Certificate Authority (CA) Management
- * Implements X.509-like Digital Certificates with ElGamal Signatures
- * All certificate hashing uses SHA-256 via Web Crypto API (async)
+ * Quản lý Hạ tầng Khóa Công khai (PKI) & Cơ quan Chứng thực (CA)
+ * Triển khai mô hình chứng thư số X.509 kết hợp với chữ ký số ElGamal
+ * Tất cả các thao tác băm chứng thư đều sử dụng SHA-256 qua Web Crypto API (bất đồng bộ)
  */
 
 import {
@@ -15,7 +15,7 @@ import { generateElGamalKeyPair, signElGamal, verifyElGamal } from './elgamal';
 import { hashString, getThumbprint } from './hash';
 import { cryptoLogger } from '../services/crypto-logger';
 
-// Default Root CA Configuration
+// Cấu hình chứng thư số Root CA mặc định
 export const DEFAULT_ROOT_CA_ISSUER: CertificateIssuer = {
   commonName: 'Đại học Công nghiệp Hà Nội - Trung Tâm Chứng Thực Số Gốc (HaUI Root CA)',
   organization: 'Trường Đại học Công nghiệp Hà Nội',
@@ -23,14 +23,14 @@ export const DEFAULT_ROOT_CA_ISSUER: CertificateIssuer = {
 };
 
 /**
- * Generate a Root Certificate Authority (Self-Signed)
- * Uses real SHA-256 (Web Crypto API) for certificate body hashing
+ * Khởi tạo Chứng thư số Root CA gốc (Tự ký - Self-Signed)
+ * Băm nội dung chứng thư bằng SHA-256 thực sự (Web Crypto API)
  */
 export async function createRootCA(
   commonName = DEFAULT_ROOT_CA_ISSUER.commonName,
   organization = DEFAULT_ROOT_CA_ISSUER.organization
 ): Promise<{ rootCert: DigitalCertificate; rootKeyPair: ElGamalKeyPair }> {
-  // Use 2048-bit safe prime for Root CA
+  // Sử dụng cặp khóa số nguyên tố an toàn 2048-bit cho Root CA
   const rootKeyPair = generateElGamalKeyPair(2048, `${commonName} Key Pair`, true);
 
   const now = new Date();
@@ -59,11 +59,11 @@ export async function createRootCA(
     keyUsage: ['Certificate Authority', 'Digital Signature', 'CRL Sign', 'Key Encipherment'],
   });
 
-  // Hash certificate body with real SHA-256 (Web Crypto API)
+  // Băm toàn vẹn chứng thư bằng SHA-256 (Web Crypto API)
   const certHashHex = await hashString(certDataToHash, 'SHA-256');
   const thumbprint = await getThumbprint(certDataToHash);
 
-  // Self-sign with Root CA key
+  // Root CA tự ký bằng chính khóa bí mật ElGamal của mình
   const { signature } = signElGamal(certHashHex, rootKeyPair.publicKey, rootKeyPair.privateKey);
 
   const rootCert: DigitalCertificate = {
@@ -99,8 +99,8 @@ export async function createRootCA(
 }
 
 /**
- * Issue a new Digital Certificate for a User/Subject signed by Root CA
- * Uses real SHA-256 (Web Crypto API) for certificate body hashing
+ * Phát hành Chứng thư số mới cho Người dùng/Chủ thể do Root CA ký bảo chứng
+ * Băm nội dung chứng thư bằng SHA-256 thực sự (Web Crypto API)
  */
 export async function issueCertificate(
   subject: CertificateSubject,
@@ -130,11 +130,11 @@ export async function issueCertificate(
     keyUsage: ['Digital Signature', 'Non-Repudiation', 'Document Signing'],
   });
 
-  // Hash certificate body with real SHA-256 (Web Crypto API)
+  // Băm toàn vẹn chứng thư bằng SHA-256 (Web Crypto API)
   const certHashHex = await hashString(certDataToHash, 'SHA-256');
   const thumbprint = await getThumbprint(certDataToHash);
 
-  // Sign by Root CA
+  // Ký bảo chứng bởi Root CA
   const { signature } = signElGamal(certHashHex, rootCAKeyPair.publicKey, rootCAKeyPair.privateKey);
 
   const certificate: DigitalCertificate = {
@@ -209,8 +209,8 @@ export async function issueCertificate(
 }
 
 /**
- * Verify a Digital Certificate against Root CA and Validity Period
- * Uses real SHA-256 (Web Crypto API) for re-hashing certificate body
+ * Thẩm định tính hợp lệ của Chứng thư số với Root CA và Thời gian hiệu lực
+ * Sử dụng SHA-256 (Web Crypto API) để tái tạo mã băm chứng thư
  */
 export async function verifyCertificate(
   cert: DigitalCertificate,
@@ -222,7 +222,7 @@ export async function verifyCertificate(
   isRevoked: boolean;
   reason?: string;
 }> {
-  // 1. Check revocation
+  // 1. Kiểm tra trạng thái thu hồi (CRL)
   if (cert.status === 'revoked') {
     return {
       isValid: false,
@@ -233,7 +233,7 @@ export async function verifyCertificate(
     };
   }
 
-  // 2. Check validity dates
+  // 2. Kiểm tra thời gian hiệu lực
   const now = new Date().getTime();
   const validFromTime = new Date(cert.validFrom).getTime();
   const validToTime = new Date(cert.validTo).getTime();
@@ -249,7 +249,7 @@ export async function verifyCertificate(
     };
   }
 
-  // 3. Reconstruct canonical cert body to verify CA's ElGamal Signature
+  // 3. Tái tạo cấu trúc chuẩn của chứng thư để thẩm định Chữ ký CA
   const certDataToHash = JSON.stringify({
     version: cert.version,
     serialNumber: cert.serialNumber,
@@ -261,7 +261,7 @@ export async function verifyCertificate(
     keyUsage: cert.keyUsage,
   });
 
-  // Hash with real SHA-256 (Web Crypto API)
+  // Băm lại bằng SHA-256 (Web Crypto API)
   const certHashHex = await hashString(certDataToHash, 'SHA-256');
 
   const mathVerify = verifyElGamal(

@@ -25,7 +25,7 @@ export const App: React.FC = () => {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [activeTab, setActiveTab] = useState<string>('pki');
 
-  // Storage State
+  // Trạng thái lưu trữ dữ liệu
   const [rootCert, setRootCert] = useState<DigitalCertificate | null>(null);
   const [rootKeyPair, setRootKeyPair] = useState<ElGamalKeyPair | null>(null);
   const [certificates, setCertificates] = useState<DigitalCertificate[]>([]);
@@ -33,15 +33,15 @@ export const App: React.FC = () => {
   const [signingHistory, setSigningHistory] = useState<SigningHistoryItem[]>([]);
   const [activeCertId, setActiveCertIdState] = useState<string>('');
 
-  // Preloaded data for verification transition
+  // Dữ liệu tải trước phục vụ chuyển tiếp sang tab Xác thực
   const [preloadedVerifyPkg, setPreloadedVerifyPkg] = useState<SignedDocumentPackage | null>(null);
   const [preloadedVerifyFile, setPreloadedVerifyFile] = useState<File | null>(null);
   const [preloadedVerifyText, setPreloadedVerifyText] = useState<string | undefined>(undefined);
 
-  // Toasts
+  // Danh sách thông báo Toast
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  // Initialize Store on load
+  // Khởi tạo bộ lưu trữ khi ứng dụng tải
   useEffect(() => {
     const init = async () => {
       const data = await initializeStorage();
@@ -55,18 +55,18 @@ export const App: React.FC = () => {
     init();
   }, []);
 
-  // Sync theme attribute to HTML
+  // Đồng bộ giao diện Dark/Light mode vào thẻ HTML
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  // Toast helper
+  // Trợ lý hiển thị thông báo Toast
   const notify = (message: string, type: 'success' | 'danger' | 'info' = 'info') => {
     const id = `toast_${Date.now()}_${Math.random()}`;
     const newToast: ToastMessage = { id, message, type };
     setToasts((prev) => [...prev, newToast]);
 
-    // Auto dismiss after 4.5s
+    // Tự động tắt thông báo sau 4.5 giây
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 4500);
@@ -76,13 +76,13 @@ export const App: React.FC = () => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  // Set Active Cert
+  // Cấu hình Chứng thư số đang kích hoạt
   const handleSetActiveCertId = (id: string) => {
     setActiveCertIdState(id);
     setActiveCertificateId(id);
   };
 
-  // Save new Certificate
+  // Lưu chứng thư số mới
   const handleSaveNewCert = (cert: DigitalCertificate, keyPair: ElGamalKeyPair) => {
     saveNewCertificate(cert, keyPair);
     setCertificates((prev) => [...prev, cert]);
@@ -90,7 +90,7 @@ export const App: React.FC = () => {
     setActiveCertIdState(cert.id);
   };
 
-  // Update Certificate Status (Revoke / Active)
+  // Cập nhật trạng thái chứng thư số (Hoạt động / Thu hồi)
   const handleUpdateStatus = (certId: string, status: 'active' | 'revoked') => {
     updateCertificateStatus(certId, status);
     setCertificates((prev) =>
