@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Trash2,
   Lock,
+  Building2,
 } from 'lucide-react';
 import { DigitalCertificate, ElGamalKeyPair } from '../../types';
 import { CertificateDetailsModal } from './CertificateDetailsModal';
@@ -95,20 +96,20 @@ export const CertificateManagerView: React.FC<CertificateManagerViewProps> = ({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '26px' }}>
       {/* Title & Actions Bar */}
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
         <div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Award size={24} color="var(--accent-cyan)" />
-            <span>Quản lý chứng thư số & cơ quan chứng thực (PKI)</span>
+          <h2 style={{ fontSize: '1.55rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Award size={26} color="var(--accent-cyan)" />
+            <span>Quản Lý Chứng Thư Số & Cơ Quan Chứng Thực (PKI)</span>
           </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '4px' }}>
-            Hạ tầng quản lý khóa công khai (PKI), cấp phát, thu hồi và thẩm định chứng thư số bởi Root CA.
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginTop: '4px' }}>
+            Hạ tầng Quản lý Khóa Công khai (PKI), cấp phát, thu hồi và thẩm định chứng thư số điện tử.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '12px' }}>
           <input
             type="file"
             ref={importInputRef}
@@ -118,72 +119,92 @@ export const CertificateManagerView: React.FC<CertificateManagerViewProps> = ({
           />
           <button className="btn btn-secondary" onClick={() => importInputRef.current?.click()}>
             <Upload size={16} />
-            <span>Nhập chứng thư (.crt)</span>
+            <span>Nhập Chứng Thư (.crt)</span>
           </button>
           <button className="btn btn-primary" onClick={() => setIsNewCertModalOpen(true)}>
             <Plus size={16} />
-            <span>Cấp phát chứng thư mới</span>
+            <span>Cấp Phát Chứng Thư Mới</span>
           </button>
         </div>
       </div>
 
-      {/* Root CA Banner */}
+      {/* Root CA Trust Banner */}
       <div
         className="card"
         style={{
-          background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.08), rgba(99, 102, 241, 0.08))',
-          border: '1px solid rgba(6, 182, 212, 0.3)',
+          background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.08), rgba(15, 23, 42, 0.6))',
+          border: '1px solid rgba(6, 182, 212, 0.25)',
+          boxShadow: 'var(--shadow-md)',
+          padding: '22px 26px',
         }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{ padding: '12px', borderRadius: '12px', background: 'rgba(6, 182, 212, 0.2)', color: 'var(--accent-cyan)' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div
+              style={{
+                width: '50px',
+                height: '50px',
+                borderRadius: 'var(--radius-md)',
+                background: 'linear-gradient(135deg, #0284c7, #06b6d4)',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(6, 182, 212, 0.35)',
+                flexShrink: 0,
+              }}
+            >
               <ShieldCheck size={28} />
             </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <strong style={{ fontSize: '1.1rem', color: 'var(--text-main)' }}>{rootCert.subject.commonName}</strong>
-                <span className="badge badge-cyan">ROOT CA</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                <strong style={{ fontSize: '1.15rem', color: 'var(--text-main)', fontWeight: 700 }}>
+                  {rootCert.subject.commonName}
+                </strong>
+                <span className="badge badge-cyan" style={{ fontSize: '0.74rem', padding: '2px 8px' }}>ROOT CA</span>
+                <span className="badge badge-success" style={{ fontSize: '0.74rem', padding: '2px 8px' }}>HOẠT ĐỘNG</span>
               </div>
-              <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                Tổ chức: {rootCert.subject.organization} | Serial: <code>{rootCert.serialNumber}</code>
+              <div style={{ fontSize: '0.84rem', color: 'var(--text-muted)', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                <span><Building2 size={13} style={{ display: 'inline', marginRight: '4px' }} />Tổ chức: <strong>{rootCert.subject.organization}</strong></span>
+                <span>Serial: <code>{rootCert.serialNumber}</code></span>
+                <span>Cỡ khóa: <strong>ElGamal-2048b</strong></span>
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '10px', flexShrink: 0 }}>
             <button
               className="btn btn-outline btn-sm"
               onClick={() => setSelectedCertForModal(rootCert)}
             >
-              <Eye size={14} /> Xem chi tiết CA
+              <Eye size={14} /> Xem Chi Tiết CA
             </button>
             <button
               className="btn btn-secondary btn-sm"
               onClick={() => downloadCertificateFile(rootCert)}
             >
-              <Download size={14} /> Tải chứng thư CA
+              <Download size={14} /> Tải Chứng Thư CA
             </button>
           </div>
         </div>
       </div>
 
-      {/* Search & Certificates Table */}
+      {/* Search & Certificates Registry Table */}
       <div className="card">
         <div className="card-header">
-          <div style={{ position: 'relative', width: '100%', maxWidth: '360px' }}>
-            <Search size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-dim)' }} />
+          <div style={{ position: 'relative', width: '100%', maxWidth: '380px' }}>
+            <Search size={16} style={{ position: 'absolute', left: '14px', top: '13px', color: 'var(--text-dim)' }} />
             <input
               type="text"
               className="form-input"
-              style={{ paddingLeft: '36px', fontSize: '0.86rem' }}
-              placeholder="Tìm theo tên, email, serial..."
+              style={{ paddingLeft: '38px', fontSize: '0.88rem' }}
+              placeholder="Tìm theo tên, email, serial, đơn vị..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <span style={{ fontSize: '0.84rem', color: 'var(--text-muted)' }}>
-            Tổng số: <strong>{filteredCerts.length}</strong> chứng thư
+          <span style={{ fontSize: '0.86rem', color: 'var(--text-muted)' }}>
+            Danh bạ: <strong>{filteredCerts.length}</strong> chứng thư đã đăng ký
           </span>
         </div>
 
@@ -191,12 +212,12 @@ export const CertificateManagerView: React.FC<CertificateManagerViewProps> = ({
           <table className="table-custom">
             <thead>
               <tr>
-                <th>Chủ thể</th>
-                <th>Đơn vị / MSSV</th>
-                <th>Thuật toán & Serial</th>
-                <th>Thời hạn hiệu lực</th>
-                <th>Trạng thái</th>
-                <th style={{ textAlign: 'right' }}>Thao tác</th>
+                <th style={{ width: '30%' }}>Chủ Thể Chứng Thư</th>
+                <th style={{ width: '28%' }}>Đơn Vị & Phòng Ban</th>
+                <th style={{ width: '16%' }}>Thuật Toán & Serial</th>
+                <th style={{ width: '12%', whiteSpace: 'nowrap' }}>Thời Hạn Hiệu Lực</th>
+                <th style={{ width: '6%', textAlign: 'center', whiteSpace: 'nowrap' }}>Trạng Thái</th>
+                <th style={{ width: '8%', textAlign: 'right', whiteSpace: 'nowrap' }}>Thao Tác</th>
               </tr>
             </thead>
             <tbody>
@@ -207,33 +228,33 @@ export const CertificateManagerView: React.FC<CertificateManagerViewProps> = ({
                 return (
                   <tr key={cert.id}>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div
                           style={{
-                            width: '32px',
-                            height: '32px',
+                            width: '36px',
+                            height: '36px',
                             borderRadius: '50%',
-                            background: cert.isRootCA ? 'rgba(6, 182, 212, 0.2)' : 'rgba(99, 102, 241, 0.2)',
-                            color: cert.isRootCA ? 'var(--accent-cyan)' : 'var(--accent-indigo)',
+                            background: cert.isRootCA ? 'rgba(37, 99, 235, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                            color: cert.isRootCA ? 'var(--brand-blue)' : 'var(--status-success)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            fontSize: '0.82rem',
+                            fontSize: '0.88rem',
                             fontWeight: 700,
                           }}
                         >
                           {cert.subject.commonName.charAt(0)}
                         </div>
                         <div>
-                          <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>
+                          <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.94rem' }}>
                             {cert.subject.commonName}
                             {isActiveSigner && (
-                              <span className="badge badge-cyan" style={{ marginLeft: '6px', fontSize: '0.7rem' }}>
+                              <span className="badge badge-cyan" style={{ marginLeft: '8px', fontSize: '0.72rem' }}>
                                 Đang chọn ký
                               </span>
                             )}
                           </div>
-                          <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                             {cert.subject.email}
                           </div>
                         </div>
@@ -241,30 +262,30 @@ export const CertificateManagerView: React.FC<CertificateManagerViewProps> = ({
                     </td>
 
                     <td>
-                      <div style={{ fontSize: '0.85rem' }}>{cert.subject.organization}</div>
-                      <div style={{ fontSize: '0.76rem', color: 'var(--text-dim)' }}>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 500 }}>{cert.subject.organization}</div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
                         {cert.subject.department || cert.subject.studentId || '-'}
                       </div>
                     </td>
 
                     <td>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 600 }}>
+                      <div style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--brand-blue)' }}>
                         ElGamal-{cert.publicKey.bitLength || 1024}b
                       </div>
-                      <code style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      <code style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
                         {cert.serialNumber}
                       </code>
                     </td>
 
                     <td>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                         Đến {new Date(cert.validTo).toLocaleDateString('vi-VN')}
                       </div>
                     </td>
 
-                    <td>
-                      <span className={`badge ${cert.status === 'active' ? 'badge-success' : 'badge-danger'}`}>
-                        {cert.status === 'active' ? 'Hoạt động' : 'Bị thu hồi'}
+                    <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
+                      <span className={`badge ${cert.status === 'active' ? 'badge-success' : 'badge-danger'}`} style={{ whiteSpace: 'nowrap' }}>
+                        {cert.status === 'active' ? 'Hợp lệ' : 'Bị thu hồi'}
                       </span>
                     </td>
 
@@ -278,9 +299,9 @@ export const CertificateManagerView: React.FC<CertificateManagerViewProps> = ({
                               setActiveCertId(cert.id);
                               onNotify(`Đã chọn "${cert.subject.commonName}" làm người ký mặc định`, 'info');
                             }}
-                            title="Chọn làm người ký"
+                            title="Chọn làm người ký hiện tại"
                           >
-                            <Key size={13} />
+                            <Key size={14} />
                           </button>
                         )}
 
@@ -290,7 +311,7 @@ export const CertificateManagerView: React.FC<CertificateManagerViewProps> = ({
                           onClick={() => setSelectedCertForModal(cert)}
                           title="Xem chi tiết chứng thư X.509"
                         >
-                          <Eye size={13} />
+                          <Eye size={14} />
                         </button>
 
                         {/* Download .crt */}
@@ -299,7 +320,7 @@ export const CertificateManagerView: React.FC<CertificateManagerViewProps> = ({
                           onClick={() => downloadCertificateFile(cert)}
                           title="Tải tệp chứng thư (.crt.json)"
                         >
-                          <Download size={13} />
+                          <Download size={14} />
                         </button>
 
                         {/* Revoke / Unrevoke (Only for non-root) */}
@@ -309,11 +330,11 @@ export const CertificateManagerView: React.FC<CertificateManagerViewProps> = ({
                             onClick={() => {
                               const newStatus = cert.status === 'active' ? 'revoked' : 'active';
                               onUpdateStatus(cert.id, newStatus);
-                              onNotify(`Đã cập nhật trạng thái chứng thư sang: ${newStatus === 'active' ? 'Hoạt động' : 'Bị thu hồi'}`, 'info');
+                              onNotify(`Đã cập nhật trạng thái chứng thư sang: ${newStatus === 'active' ? 'Hợp lệ' : 'Bị thu hồi'}`, 'info');
                             }}
                             title={cert.status === 'active' ? 'Thu hồi chứng thư (Revoke)' : 'Khôi phục chứng thư'}
                           >
-                            <ShieldAlert size={13} />
+                            <ShieldAlert size={14} />
                           </button>
                         )}
                       </div>

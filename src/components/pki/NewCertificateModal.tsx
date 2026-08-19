@@ -8,11 +8,11 @@ import {
   User,
   Building,
   Mail,
+  Lock,
 } from 'lucide-react';
 import { DigitalCertificate, ElGamalKeyPair, CertificateSubject } from '../../types';
 import { generateElGamalKeyPair } from '../../crypto/elgamal';
 import { issueCertificate } from '../../crypto/pki';
-import { MathText } from '../common/MathView';
 
 interface NewCertificateModalProps {
   rootCert: DigitalCertificate;
@@ -83,19 +83,19 @@ export const NewCertificateModal: React.FC<NewCertificateModalProps> = ({
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-card" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>
+      <div className="modal-card" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
         {/* Modal Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ padding: '8px', borderRadius: '8px', background: 'rgba(6, 182, 212, 0.15)', color: 'var(--accent-cyan)' }}>
-              <Award size={22} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ padding: '10px', borderRadius: 'var(--radius-md)', background: 'rgba(37, 99, 235, 0.15)', color: 'var(--brand-blue)' }}>
+              <Award size={24} />
             </div>
             <div>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                Cấp phát chứng thư số mới
+                Cấp Phát Chứng Thư Số Mới
               </h3>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Ký duyệt bởi Cơ quan chứng thực gốc (Root CA)
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                Bảo chứng và ký số bởi Cơ quan Chứng thực Gốc (Root CA)
               </div>
             </div>
           </div>
@@ -104,31 +104,60 @@ export const NewCertificateModal: React.FC<NewCertificateModalProps> = ({
           </button>
         </div>
 
+        {/* Form */}
         <form onSubmit={handleGenerate} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Form inputs */}
           <div className="form-group">
             <label className="form-label">
-              <User size={14} style={{ display: 'inline', marginRight: '4px' }} /> Họ và tên người nhận *:
+              <User size={14} style={{ display: 'inline', marginRight: '6px' }} />
+              Họ và tên người sử dụng (Common Name) <span style={{ color: 'var(--status-danger)' }}>*</span>:
             </label>
             <input
               type="text"
               className="form-input"
               required
-              placeholder="VD: TS. Lê Văn Cường hoặc Nguyễn Mai Anh"
+              placeholder="VD: Nguyễn Văn A"
               value={commonName}
               onChange={(e) => setCommonName(e.target.value)}
             />
           </div>
 
-          <div className="grid-2">
+          <div className="grid-2" style={{ gap: '14px' }}>
             <div className="form-group">
               <label className="form-label">
-                <Building size={14} style={{ display: 'inline', marginRight: '4px' }} /> Tên đơn vị / Tổ chức *:
+                <Mail size={14} style={{ display: 'inline', marginRight: '6px' }} />
+                Địa chỉ Email <span style={{ color: 'var(--status-danger)' }}>*</span>:
+              </label>
+              <input
+                type="email"
+                className="form-input"
+                required
+                placeholder="nguyenvana@gmail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Mã định danh / MSSV:</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="VD: 2021601234"
+                value={studentId}
+                onChange={(e) => setStudentId(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid-2" style={{ gap: '14px' }}>
+            <div className="form-group">
+              <label className="form-label">
+                <Building size={14} style={{ display: 'inline', marginRight: '6px' }} />
+                Tổ chức / Cơ quan:
               </label>
               <input
                 type="text"
                 className="form-input"
-                required
                 value={organization}
                 onChange={(e) => setOrganization(e.target.value)}
               />
@@ -145,85 +174,45 @@ export const NewCertificateModal: React.FC<NewCertificateModalProps> = ({
             </div>
           </div>
 
-          <div className="grid-2" style={{ gap: '12px' }}>
+          <div className="grid-2" style={{ gap: '14px' }}>
             <div className="form-group">
               <label className="form-label">
-                <Mail size={14} style={{ display: 'inline', marginRight: '4px' }} /> Email cá nhân *:
+                <Lock size={14} style={{ display: 'inline', marginRight: '6px' }} />
+                Cỡ khóa ElGamal:
               </label>
-              <input
-                type="email"
-                className="form-input"
-                required
-                placeholder="email@edu.vn"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Mã định danh / MSSV:</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="VD: 20215678"
-                value={studentId}
-                onChange={(e) => setStudentId(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {/* Key Length & Validity */}
-          <div className="grid-2" style={{ gap: '12px' }}>
-            <div className="form-group">
-              <label className="form-label">Độ dài khoá ElGamal (Bit Length):</label>
               <select
                 className="form-select"
                 value={bitLength}
-                onChange={(e) => setBitLength(parseInt(e.target.value) as any)}
+                onChange={(e) => setBitLength(Number(e.target.value) as any)}
               >
+                <option value={1024}>1024-bit (Chuẩn đồ án & BTL - Khuyên dùng)</option>
+                <option value={2048}>2048-bit (Chuẩn thương mại NIST)</option>
                 <option value={512}>512-bit (Thử nghiệm nhanh)</option>
-                <option value={1024}>1024-bit (Tiêu chuẩn Đồ án BTL - Khuyên dùng)</option>
-                <option value={2048}>2048-bit (Tiêu chuẩn An toàn cao cấp)</option>
               </select>
             </div>
+
             <div className="form-group">
               <label className="form-label">Thời hạn hiệu lực:</label>
               <select
                 className="form-select"
                 value={validityYears}
-                onChange={(e) => setValidityYears(parseInt(e.target.value))}
+                onChange={(e) => setValidityYears(Number(e.target.value))}
               >
                 <option value={1}>1 Năm</option>
-                <option value={2}>2 Năm</option>
-                <option value={3}>3 Năm</option>
+                <option value={2}>2 Năm (Mặc định)</option>
                 <option value={5}>5 Năm</option>
               </select>
             </div>
           </div>
 
-          {/* Banner Info */}
-          <div
-            style={{
-              padding: '10px 14px',
-              borderRadius: '8px',
-              background: 'rgba(6, 182, 212, 0.08)',
-              border: '1px solid rgba(6, 182, 212, 0.2)',
-              fontSize: '0.8rem',
-              color: 'var(--text-muted)',
-              lineHeight: '1.6',
-            }}
-          >
-            <strong>Cơ chế tự động:</strong>{' '}
-            <MathText text="Hệ thống sẽ sinh cặp số nguyên tố an toàn $p = 2q + 1$, tìm phần tử sinh $\alpha$, sinh khoá bí mật $x$ và tính khoá công khai $y = \alpha^x \pmod p$. Sau đó Root CA sẽ ký số ElGamal lên bản ghi chứng thư." />
-          </div>
-
-          {/* Form Actions */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
-              Huỷ
+          {/* Action buttons */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '10px' }}>
+            <button type="button" className="btn btn-secondary" onClick={onClose} disabled={isGenerating}>
+              Hủy
             </button>
             <button type="submit" className="btn btn-primary" disabled={isGenerating}>
               <Sparkles size={16} />
-              <span>{isGenerating ? 'Đang Sinh Khoá & Ký CA...' : 'Cấp Phát Chứng Thư'}</span>
+              <span>{isGenerating ? 'Đang sinh cặp khóa & ký CA...' : 'Tạo & Cấp Phát Chứng Thư'}</span>
             </button>
           </div>
         </form>

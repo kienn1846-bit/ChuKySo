@@ -4,6 +4,7 @@ import {
   Upload,
   FileText,
   FileCheck,
+  File as FileIcon,
   Download,
   Key,
   CheckCircle2,
@@ -15,6 +16,7 @@ import {
   Calendar,
   Layers,
   Palette,
+  Move,
 } from 'lucide-react';
 import {
   DigitalCertificate,
@@ -26,9 +28,10 @@ import {
 import { hashFile, hashString } from '../../crypto/hash';
 import { signElGamal } from '../../crypto/elgamal';
 import {
+  createSignedDocumentCertificatePdf,
+  createSignedPdfFromText,
   generateVisualStampDataUrl,
   signPdfDocument,
-  createSignedPdfFromText,
 } from '../../services/pdf-service';
 import { downloadFile } from '../../services/storage-service';
 import { SignaturePadModal } from './SignaturePadModal';
@@ -54,9 +57,7 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
 }) => {
   const [signMode, setSignMode] = useState<'pdf' | 'file' | 'text'>('pdf');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [textContent, setTextContent] = useState<string>(
-    'CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM\nĐộc lập - Tự do - Hạnh phúc\n\nGIẤY XÁC NHẬN HOÀN THÀNH BÀI TẬP LỚN MÔN AN TOÀN THÔNG TIN\nKính gửi: Hội đồng Chấm thi Khoa Công nghệ Thông tin - Đại học Công nghiệp Hà Nội\nSinh viên thực hiện đã hoàn thành toàn bộ chương trình thực nghiệm hệ mật ElGamal và đóng dấu điện tử xác thực văn bản.'
-  );
+  const [textContent, setTextContent] = useState<string>('');
 
   // Active certificate and key
   const activeCert = certificates.find((c) => c.id === activeCertId) || certificates[0];
@@ -94,6 +95,52 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
   } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewPageRef = useRef<HTMLDivElement>(null);
+  const [isDraggingStamp, setIsDraggingStamp] = useState(false);
+
+  // Drag and drop handler for visual stamp position
+  const handlePositionDrag = (clientX: number, clientY: number) => {
+    if (!previewPageRef.current) return;
+    const rect = previewPageRef.current.getBoundingClientRect();
+    const relX = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const relY = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+
+    const newX = Math.round(relX * 80);
+    const newY = Math.round((1 - relY) * 85);
+
+    setStampConfig((prev) => ({
+      ...prev,
+      xPercent: Math.max(5, Math.min(75, newX)),
+      yPercent: Math.max(5, Math.min(85, newY)),
+    }));
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDraggingStamp(true);
+    handlePositionDrag(e.clientX, e.clientY);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDraggingStamp) {
+        handlePositionDrag(e.clientX, e.clientY);
+      }
+    };
+    const handleMouseUp = () => {
+      if (isDraggingStamp) {
+        setIsDraggingStamp(false);
+      }
+    };
+
+    if (isDraggingStamp) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDraggingStamp]);
 
   // Synchronize signer name with active cert if empty
   useEffect(() => {
@@ -207,13 +254,15 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
         const blob = new Blob([new Uint8Array(signedPdfBytes)], { type: 'application/pdf' });
         signedPdfBlobUrl = URL.createObjectURL(blob);
       }
-      // 2. If user signed Text or other file, generate a formal signed PDF document with stamp
+      // 2. If user signed Text directly, generate a formal signed PDF document with stamp
+      else if (signMode === 'text') {
+        signedPdfBytes = await createSignedPdfFromText(textContent, packageData, stampConfig);
+        const blob = new Blob([new Uint8Array(signedPdfBytes)], { type: 'application/pdf' });
+        signedPdfBlobUrl = URL.createObjectURL(blob);
+      }
+      // 3. If user signed Word / Excel / any other file: generate a formal Giấy Chứng Nhận Ký Số Điện Tử (PDF)
       else {
-        const textToRender = signMode === 'text'
-          ? textContent
-          : `TÀI LIỆU KÝ SỐ: ${fileName}\n\nLoại tệp: ${fileType}\nDung lượng: ${(fileSize / 1024).toFixed(1)} KB\n\nMã băm toàn vẹn SHA-256:\n${docHash}\n\nChữ ký ElGamal:\nr = ${signature.r}\ns = ${signature.s}`;
-        
-        signedPdfBytes = await createSignedPdfFromText(textToRender, packageData, stampConfig);
+        signedPdfBytes = await createSignedDocumentCertificatePdf(packageData, stampConfig);
         const blob = new Blob([new Uint8Array(signedPdfBytes)], { type: 'application/pdf' });
         signedPdfBlobUrl = URL.createObjectURL(blob);
       }
@@ -266,7 +315,6 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
     downloadFile(signedResult.signedPdfBytes, `[SIGNED]_${safeName}.pdf`, 'application/pdf');
     onNotify('Đang tải xuống tệp PDF đã ký số & đóng dấu...', 'success');
   };
-
   // Download Signature Package JSON
   const handleDownloadPackageJson = () => {
     if (!signedResult?.packageData) return;
@@ -291,16 +339,16 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
 
       <div className="grid-2">
         {/* Left Column: Certificate Selection & Document Input */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {/* Certificate Selection Card */}
           <div className="card">
-            <div className="card-header">
-              <h3 className="card-title">
-                <Key size={18} color="var(--accent-cyan)" />
+            <div className="card-header" style={{ marginBottom: '8px', paddingBottom: '6px' }}>
+              <h3 className="card-title" style={{ fontSize: '1rem' }}>
+                <Key size={16} color="var(--accent-cyan)" />
                 <span>1. Chứng thư số & khóa ký hiện tại</span>
               </h3>
               {activeCert && (
-                <span className={`badge ${activeCert.status === 'active' ? 'badge-success' : 'badge-danger'}`}>
+                <span className={`badge ${activeCert.status === 'active' ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
                   {activeCert.status === 'active' ? 'Đang hoạt động' : 'Đã bị thu hồi'}
                 </span>
               )}
@@ -310,72 +358,74 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
               <div
                 style={{
                   background: 'var(--bg-input)',
-                  padding: '14px',
-                  borderRadius: '10px',
-                  fontSize: '0.86rem',
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  fontSize: '0.8rem',
                   border: '1px solid var(--border-subtle)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '6px',
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '4px 12px',
                 }}
               >
-                <div><strong>Người ký:</strong> {activeCert.subject.commonName} ({activeCert.subject.email})</div>
-                <div><strong>Đơn vị:</strong> {activeCert.subject.organization} {activeCert.subject.department ? `- ${activeCert.subject.department}` : ''}</div>
-                <div><strong>Cơ quan cấp (CA):</strong> {activeCert.issuer.commonName}</div>
-                <div><strong>Thời hạn:</strong> Đến {new Date(activeCert.validTo).toLocaleDateString('vi-VN')}</div>
-                <div><strong>Mã số serial:</strong> <code style={{ color: 'var(--accent-cyan)' }}>{activeCert.serialNumber}</code></div>
-                <div><strong>Thuật toán:</strong> ElGamal-{activeCert.publicKey.bitLength || 1024} bit (SHA-256)</div>
+                <div><span style={{ color: 'var(--text-muted)' }}>Người ký:</span> <strong>{activeCert.subject.commonName}</strong></div>
+                <div><span style={{ color: 'var(--text-muted)' }}>Đơn vị:</span> {activeCert.subject.organization}</div>
+                <div><span style={{ color: 'var(--text-muted)' }}>Cơ quan cấp:</span> {activeCert.issuer.commonName}</div>
+                <div><span style={{ color: 'var(--text-muted)' }}>Thuật toán:</span> ElGamal-{activeCert.publicKey.bitLength || 1024}b</div>
               </div>
             )}
           </div>
 
           {/* Document Type Selection & Upload Card */}
           <div className="card">
-            <div className="card-header">
-              <h3 className="card-title">
-                <FileText size={18} color="var(--accent-blue)" />
+            <div className="card-header" style={{ marginBottom: '8px', paddingBottom: '6px' }}>
+              <h3 className="card-title" style={{ fontSize: '1rem' }}>
+                <FileText size={16} color="var(--accent-cyan)" />
                 <span>2. Chọn tài liệu / văn bản cần ký</span>
               </h3>
             </div>
 
             {/* Mode Switcher */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
               <button
                 className={`btn btn-sm ${signMode === 'pdf' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => setSignMode('pdf')}
+                style={{ padding: '4px 10px', fontSize: '0.78rem' }}
               >
-                <FileCheck size={14} /> Tệp PDF (Đóng dấu)
+                <FileCheck size={13} /> Tệp PDF (Đóng dấu)
               </button>
               <button
                 className={`btn btn-sm ${signMode === 'text' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => setSignMode('text')}
+                style={{ padding: '4px 10px', fontSize: '0.78rem' }}
               >
-                <FileText size={14} /> Soạn văn bản trực tiếp
+                <FileText size={13} /> Văn bản
               </button>
               <button
                 className={`btn btn-sm ${signMode === 'file' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => setSignMode('file')}
+                style={{ padding: '4px 10px', fontSize: '0.78rem' }}
               >
-                <Upload size={14} /> Tệp tin bất kỳ
+                <FileIcon size={13} /> Tệp tin bất kỳ (Word/File)
               </button>
             </div>
 
-            {signMode === 'text' ? (
-              <div className="form-group">
-                <label className="form-label">Nội dung văn bản cần ký:</label>
+            {/* Text Mode */}
+            {signMode === 'text' && (
+              <div className="form-group" style={{ marginBottom: '10px' }}>
                 <textarea
                   className="form-textarea"
-                  rows={7}
+                  rows={8}
                   value={textContent}
                   onChange={(e) => setTextContent(e.target.value)}
-                  placeholder="Nhập nội dung văn bản cần ký..."
+                  placeholder="Nhập nội dung văn bản, hợp đồng, biên bản cần ký..."
+                  style={{ minHeight: '200px', fontSize: '0.88rem', padding: '10px 14px', lineHeight: '1.5' }}
                 />
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  Hệ thống sẽ tự động tạo file PDF chính thức và đóng con dấu chữ ký số điện tử vào góc văn bản.
-                </div>
               </div>
-            ) : (
-              <div>
+            )}
+
+            {/* File & PDF Mode Upload Dropzone */}
+            {signMode !== 'text' && (
+              <div className="form-group" style={{ marginBottom: '10px' }}>
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -386,27 +436,25 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
                 <div
                   className="dropzone"
                   onClick={() => fileInputRef.current?.click()}
+                  style={{ padding: '36px 16px' }}
                 >
-                  <Upload className="dropzone-icon" />
+                  <Upload className="dropzone-icon" style={{ width: '40px', height: '40px', marginBottom: '8px' }} />
                   {selectedFile ? (
                     <div>
-                      <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '1.05rem' }}>
+                      <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '1rem' }}>
                         {selectedFile.name}
                       </div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginTop: '4px' }}>
-                        Dung lượng: {(selectedFile.size / 1024).toFixed(1)} KB | Loại: {selectedFile.type || 'Binary'}
-                      </div>
-                      <div style={{ marginTop: '10px' }}>
-                        <span className="badge badge-cyan">Bấm để chọn tệp khác</span>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '4px' }}>
+                        Dung lượng: {(selectedFile.size / 1024).toFixed(1)} KB | Bấm để đổi tệp
                       </div>
                     </div>
                   ) : (
                     <div>
-                      <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>
+                      <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.92rem' }}>
                         Kéo thả tệp vào đây hoặc bấm để chọn tệp
                       </div>
-                      <div style={{ color: 'var(--text-dim)', fontSize: '0.82rem', marginTop: '6px' }}>
-                        {signMode === 'pdf' ? 'Hỗ trợ định dạng PDF (tự động đóng dấu vào trang văn bản)' : 'Hỗ trợ mọi định dạng tệp tin'}
+                      <div style={{ color: 'var(--text-dim)', fontSize: '0.8rem', marginTop: '4px' }}>
+                        {signMode === 'pdf' ? 'Hỗ trợ PDF (đóng dấu tự động)' : 'Hỗ trợ Word (.docx), Excel, ZIP...'}
                       </div>
                     </div>
                   )}
@@ -415,12 +463,18 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
             )}
 
             {/* Execute Sign Button */}
-            <div style={{ marginTop: '20px' }}>
+            <div>
               <button
-                className="btn btn-success btn-lg"
-                style={{ width: '100%' }}
+                className="btn btn-primary btn-lg"
+                style={{
+                  width: '100%',
+                  fontSize: '1rem',
+                  padding: '12px 20px',
+                  background: 'linear-gradient(135deg, #0284c7, #06b6d4)',
+                  boxShadow: '0 4px 14px rgba(6, 182, 212, 0.35)',
+                }}
                 onClick={handleExecuteSign}
-                disabled={isSigning || (!selectedFile && signMode !== 'text')}
+                disabled={isSigning || (signMode === 'text' ? !textContent.trim() : !selectedFile)}
               >
                 <FileSignature size={20} />
                 <span>{isSigning ? 'Đang tính toán & đóng dấu ký số...' : 'Thực hiện ký số & đóng dấu văn bản'}</span>
@@ -429,122 +483,326 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
           </div>
         </div>
 
-        {/* Right Column: Visual Stamp Customizer & Live Result */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Visual Stamp Settings */}
-          <div className="card">
-            <div className="card-header">
-              <h3 className="card-title">
-                <Sliders size={18} color="var(--accent-blue)" />
-                <span>Mẫu chữ ký số & con dấu điện tử</span>
-              </h3>
-              <span className="badge badge-cyan">Chuẩn chữ ký số</span>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {/* Main Studio Open Button */}
-              <button
-                type="button"
-                className="btn btn-primary"
-                style={{ width: '100%', justifyContent: 'center', padding: '10px 16px', fontWeight: 600 }}
-                onClick={() => setIsSigModalOpen(true)}
-              >
-                <PenTool size={16} />
-                <span>✍️ Vẽ / Tải ảnh chữ ký tay & tùy chỉnh con dấu</span>
-              </button>
-
-              {/* Quick Settings Grid */}
-              <div className="grid-2" style={{ gap: '10px' }}>
-                <div>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Màu mực con dấu:</label>
-                  <select
-                    className="form-select"
-                    style={{ padding: '6px 10px', fontSize: '0.84rem' }}
-                    value={stampConfig.color}
-                    onChange={(e) => setStampConfig({ ...stampConfig, color: e.target.value as any })}
-                  >
-                    <option value="blue">Xanh chuẩn chữ ký số (Corporate Blue)</option>
-                    <option value="crimson">Đỏ công vụ (Chuẩn văn bản)</option>
-                    <option value="emerald">Xanh lục bảo mật</option>
-                    <option value="slate">Đen than</option>
-                  </select>
+        {/* Right Column: Visual Stamp Customizer OR Live Signed Result */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {/* If signedResult is available, show the interactive Result Workspace; Otherwise show Stamp Studio */}
+          {signedResult ? (
+            <div
+              className="card"
+              style={{
+                border: '1px solid var(--status-success-border)',
+                background: 'linear-gradient(180deg, rgba(16, 185, 129, 0.08), var(--bg-card))',
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%',
+              }}
+            >
+              <div className="card-header" style={{ marginBottom: '10px', paddingBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CheckCircle2 size={20} color="var(--status-success)" />
+                  <h3 className="card-title" style={{ fontSize: '1.05rem', color: 'var(--status-success)' }}>
+                    Văn bản đã được ký số & đóng dấu thành công!
+                  </h3>
                 </div>
-
-                <div>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Kiểu nền con dấu:</label>
-                  <select
-                    className="form-select"
-                    style={{ padding: '6px 10px', fontSize: '0.84rem' }}
-                    value={stampConfig.backgroundStyle || 'white'}
-                    onChange={(e) => setStampConfig({ ...stampConfig, backgroundStyle: e.target.value as any })}
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    className="btn btn-outline btn-sm"
+                    onClick={() => setIsSigModalOpen(true)}
+                    title="Chỉnh sửa mẫu dấu"
+                    style={{ fontSize: '0.78rem' }}
                   >
-                    <option value="white">Nền trắng chuẩn văn bản</option>
-                    <option value="transparent">Nền trong suốt</option>
-                    <option value="tinted">Nền màu nhạt</option>
-                  </select>
+                    <PenTool size={13} /> Sửa dấu
+                  </button>
                 </div>
               </div>
 
-              <div className="grid-2" style={{ gap: '10px' }}>
-                <div>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Hiệu lực từ ngày:</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    style={{ padding: '6px 10px', fontSize: '0.84rem' }}
-                    value={stampConfig.validFromDate || '18/08/2026'}
-                    onChange={(e) => setStampConfig({ ...stampConfig, validFromDate: e.target.value })}
-                    placeholder="DD/MM/YYYY"
-                  />
-                </div>
-
-                <div>
-                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Hiệu lực đến ngày:</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    style={{ padding: '6px 10px', fontSize: '0.84rem' }}
-                    value={stampConfig.validToDate || '18/08/2029'}
-                    onChange={(e) => setStampConfig({ ...stampConfig, validToDate: e.target.value })}
-                    placeholder="DD/MM/YYYY"
-                  />
-                </div>
-              </div>
-
-              {/* Stamp Preview Card */}
-              <div style={{ marginTop: '4px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-main)', fontWeight: 600 }}>
-                    Xem trước mẫu con dấu điện tử:
-                  </span>
-                  {stampConfig.handwrittenSignatureUrl && (
-                    <span className="badge badge-success" style={{ fontSize: '0.7rem' }}>
-                      ✓ Đã có chữ ký tay
+              {/* Action Buttons Bar at the Top */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+                {signedResult.signedPdfBytes && (
+                  <button className="btn btn-primary btn-sm" onClick={handleDownloadSignedPdf}>
+                    <Download size={14} />
+                    <span>
+                      {signMode === 'pdf'
+                        ? 'Tải File PDF Đã Ký'
+                        : signMode === 'text'
+                        ? 'Tải Văn Bản PDF Đã Ký'
+                        : 'Tải Giấy Chứng Nhận (PDF)'}
                     </span>
-                  )}
-                </div>
+                  </button>
+                )}
 
-                {stampPreviewUrl && (
-                  <div
-                    style={{
-                      background: '#f8fafc',
-                      padding: '14px',
-                      borderRadius: '8px',
-                      textAlign: 'center',
-                      border: '1px solid var(--border-subtle)',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                    }}
+                <button className="btn btn-secondary btn-sm" onClick={handleDownloadPackageJson}>
+                  <Download size={14} />
+                  <span>Tải .sig.json</span>
+                </button>
+
+                {signedResult.signedPdfBlobUrl && (
+                  <a
+                    href={signedResult.signedPdfBlobUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-outline btn-sm"
+                    style={{ textDecoration: 'none' }}
                   >
-                    <img
-                      src={stampPreviewUrl}
-                      alt="Xem trước con dấu"
-                      style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px', display: 'inline-block' }}
-                    />
-                  </div>
+                    <ExternalLink size={14} />
+                    <span>Mở tab mới</span>
+                  </a>
+                )}
+
+                {onGoToVerifyWithPackage && (
+                  <button
+                    className="btn btn-outline btn-sm"
+                    onClick={() =>
+                      onGoToVerifyWithPackage(
+                        signedResult.packageData,
+                        selectedFile,
+                        signMode === 'text' ? textContent : undefined
+                      )
+                    }
+                  >
+                    <Eye size={14} />
+                    <span>Xác thực ngay</span>
+                  </button>
                 )}
               </div>
+
+              {/* PDF Live Embedded Viewer Preview - Expanded to fill available height */}
+              {signedResult.signedPdfBlobUrl ? (
+                <div
+                  style={{
+                    flex: 1,
+                    minHeight: '460px',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    border: '1px solid var(--border-subtle)',
+                    background: '#1e293b',
+                    marginBottom: '10px',
+                  }}
+                >
+                  <iframe
+                    src={signedResult.signedPdfBlobUrl}
+                    title="Signed PDF Preview"
+                    style={{ width: '100%', height: '100%', border: 'none' }}
+                  />
+                </div>
+              ) : signedResult.stampDataUrl ? (
+                <div
+                  style={{
+                    background: 'var(--bg-input)',
+                    padding: '20px',
+                    borderRadius: '8px',
+                    textAlign: 'center',
+                    border: '1px solid var(--status-success-border)',
+                    marginBottom: '10px',
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <img
+                    src={signedResult.stampDataUrl}
+                    alt="Con dấu đã đóng"
+                    style={{ maxHeight: '240px', width: 'auto', borderRadius: '4px' }}
+                  />
+                </div>
+              ) : null}
+
+              {/* Compact Meta Details */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.78rem' }}>
+                <div style={{ background: 'var(--bg-input)', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ color: 'var(--text-muted)' }}>Mã băm SHA-256:</div>
+                  <code style={{ color: '#38bdf8', fontSize: '0.76rem' }}>
+                    {signedResult.packageData.documentHash.slice(0, 32)}...
+                  </code>
+                </div>
+                <div style={{ background: 'var(--bg-input)', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ color: 'var(--text-muted)' }}>Chữ ký ElGamal (r, s):</div>
+                  <code style={{ color: '#a5b4fc', fontSize: '0.76rem' }}>
+                    r: {signedResult.packageData.signature.r.slice(0, 14)}... | s: {signedResult.packageData.signature.s.slice(0, 14)}...
+                  </code>
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            /* Stamp Settings Card */
+            <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <div className="card-header" style={{ marginBottom: '10px', paddingBottom: '8px' }}>
+                <h3 className="card-title" style={{ fontSize: '1.05rem' }}>
+                  <Sliders size={17} color="var(--accent-cyan)" />
+                  <span>Mẫu chữ ký số & con dấu điện tử</span>
+                </h3>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  style={{
+                    width: '100%',
+                    justifyContent: 'center',
+                    padding: '10px 14px',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    background: 'linear-gradient(135deg, #0284c7, #06b6d4)',
+                    boxShadow: '0 3px 12px rgba(6, 182, 212, 0.25)',
+                  }}
+                  onClick={() => setIsSigModalOpen(true)}
+                >
+                  <PenTool size={16} />
+                  <span>Vẽ / Tải ảnh chữ ký tay & tùy chỉnh con dấu</span>
+                </button>
+
+                {/* Quick Settings Grid */}
+                <div className="grid-2" style={{ gap: '10px' }}>
+                  <div>
+                    <label className="form-label" style={{ fontSize: '0.78rem', marginBottom: '4px' }}>Màu mực con dấu:</label>
+                    <select
+                      className="form-select"
+                      style={{ padding: '6px 10px', fontSize: '0.84rem' }}
+                      value={stampConfig.color}
+                      onChange={(e) => setStampConfig({ ...stampConfig, color: e.target.value as any })}
+                    >
+                      <option value="blue">Xanh chuẩn chữ ký số (Corporate Blue)</option>
+                      <option value="crimson">Đỏ công vụ (Chuẩn văn bản)</option>
+                      <option value="emerald">Xanh lục bảo mật</option>
+                      <option value="slate">Đen than</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="form-label" style={{ fontSize: '0.78rem', marginBottom: '4px' }}>Kiểu nền con dấu:</label>
+                    <select
+                      className="form-select"
+                      style={{ padding: '6px 10px', fontSize: '0.84rem' }}
+                      value={stampConfig.backgroundStyle || 'white'}
+                      onChange={(e) => setStampConfig({ ...stampConfig, backgroundStyle: e.target.value as any })}
+                    >
+                      <option value="white">Nền trắng chuẩn văn bản</option>
+                      <option value="transparent">Nền trong suốt</option>
+                      <option value="tinted">Nền màu nhạt</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Quick Presets for Position */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label className="form-label" style={{ fontSize: '0.78rem', marginBottom: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Move size={13} color="var(--accent-cyan)" />
+                      <span>Vị trí đóng dấu trên trang cuối:</span>
+                    </label>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--accent-cyan)', fontWeight: 600 }}>
+                      X: {stampConfig.xPercent}% | Y: {stampConfig.yPercent}%
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                    <button
+                      type="button"
+                      className={`btn btn-xs ${stampConfig.xPercent === 65 && stampConfig.yPercent === 12 ? 'btn-primary' : 'btn-secondary'}`}
+                      style={{ fontSize: '0.72rem', padding: '4px 6px' }}
+                      onClick={() => setStampConfig({ ...stampConfig, xPercent: 65, yPercent: 12 })}
+                    >
+                      Phải dưới (Chuẩn)
+                    </button>
+                    <button
+                      type="button"
+                      className={`btn btn-xs ${stampConfig.xPercent === 10 && stampConfig.yPercent === 12 ? 'btn-primary' : 'btn-secondary'}`}
+                      style={{ fontSize: '0.72rem', padding: '4px 6px' }}
+                      onClick={() => setStampConfig({ ...stampConfig, xPercent: 10, yPercent: 12 })}
+                    >
+                      Trái dưới
+                    </button>
+                    <button
+                      type="button"
+                      className={`btn btn-xs ${stampConfig.xPercent === 35 && stampConfig.yPercent === 50 ? 'btn-primary' : 'btn-secondary'}`}
+                      style={{ fontSize: '0.72rem', padding: '4px 6px' }}
+                      onClick={() => setStampConfig({ ...stampConfig, xPercent: 35, yPercent: 50 })}
+                    >
+                      Chính giữa
+                    </button>
+                    <button
+                      type="button"
+                      className={`btn btn-xs ${stampConfig.xPercent === 65 && stampConfig.yPercent === 75 ? 'btn-primary' : 'btn-secondary'}`}
+                      style={{ fontSize: '0.72rem', padding: '4px 6px' }}
+                      onClick={() => setStampConfig({ ...stampConfig, xPercent: 65, yPercent: 75 })}
+                    >
+                      Phải trên
+                    </button>
+                  </div>
+                </div>
+
+                {/* Interactive Drag & Drop Stamp Canvas */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-main)', fontWeight: 600 }}>
+                      Đặt con dấu:
+                    </span>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                      Giữ chuột để kéo thả vị trí
+                    </span>
+                  </div>
+
+                  <div
+                    ref={previewPageRef}
+                    onMouseDown={handleMouseDown}
+                    style={{
+                      position: 'relative',
+                      background: '#ffffff',
+                      borderRadius: '8px',
+                      border: '2px dashed var(--border-subtle)',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                      flex: 1,
+                      minHeight: '220px',
+                      overflow: 'hidden',
+                      cursor: isDraggingStamp ? 'grabbing' : 'grab',
+                      userSelect: 'none',
+                      padding: '12px 16px',
+                    }}
+                  >
+                    {/* Simulated Text Lines of Document */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', opacity: 0.35, pointerEvents: 'none' }}>
+                      <div style={{ width: '60%', height: '8px', background: '#94a3b8', borderRadius: '4px', margin: '0 auto 6px' }} />
+                      <div style={{ width: '45%', height: '6px', background: '#cbd5e1', borderRadius: '3px', margin: '0 auto 12px' }} />
+                      <div style={{ width: '100%', height: '5px', background: '#e2e8f0', borderRadius: '3px' }} />
+                      <div style={{ width: '92%', height: '5px', background: '#e2e8f0', borderRadius: '3px' }} />
+                      <div style={{ width: '96%', height: '5px', background: '#e2e8f0', borderRadius: '3px' }} />
+                      <div style={{ width: '85%', height: '5px', background: '#e2e8f0', borderRadius: '3px' }} />
+                      <div style={{ width: '90%', height: '5px', background: '#e2e8f0', borderRadius: '3px' }} />
+                      <div style={{ width: '70%', height: '5px', background: '#e2e8f0', borderRadius: '3px' }} />
+                    </div>
+
+                    {/* Draggable Stamp Badge */}
+                    {stampPreviewUrl && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: `${stampConfig.xPercent}%`,
+                          top: `${Math.max(10, Math.min(78, 100 - stampConfig.yPercent - 22))}%`,
+                          transform: 'scale(0.85)',
+                          transformOrigin: 'top left',
+                          border: isDraggingStamp ? '2px solid #06b6d4' : '1.5px solid #38bdf8',
+                          borderRadius: '6px',
+                          boxShadow: isDraggingStamp ? '0 8px 24px rgba(6, 182, 212, 0.4)' : '0 2px 10px rgba(0,0,0,0.15)',
+                          background: stampConfig.backgroundStyle === 'transparent' ? 'rgba(255,255,255,0.85)' : '#ffffff',
+                          padding: '2px',
+                          pointerEvents: 'none',
+                          transition: isDraggingStamp ? 'none' : 'box-shadow 0.2s ease',
+                        }}
+                      >
+                        <img
+                          src={stampPreviewUrl}
+                          alt="Con dấu"
+                          style={{ maxHeight: '72px', width: 'auto', display: 'block' }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Signature Studio Modal */}
           <SignaturePadModal
@@ -555,138 +813,6 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
             activeCert={activeCert}
             onNotify={onNotify}
           />
-
-          {/* Signed Output Result Card */}
-          {signedResult && (
-            <div
-              className="card"
-              style={{
-                border: '1px solid var(--status-success-border)',
-                background: 'linear-gradient(180deg, rgba(16, 185, 129, 0.08), var(--bg-card))',
-              }}
-            >
-              <div className="card-header">
-                <h3 className="card-title" style={{ color: 'var(--status-success)' }}>
-                  <CheckCircle2 size={20} />
-                  <span>Văn bản đã được ký số & đóng dấu thành công!</span>
-                </h3>
-                <span className="badge badge-success">Đã đóng dấu PDF</span>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.85rem' }}>
-                {/* Visual Stamp Image Confirmation */}
-                <div>
-                  <div style={{ fontWeight: 700, marginBottom: '6px', color: 'var(--text-main)' }}>
-                    Con dấu ký số đã được khắc và đóng vào file:
-                  </div>
-                  {signedResult.stampDataUrl && (
-                    <div
-                      style={{
-                        background: 'var(--bg-input)',
-                        padding: '10px',
-                        borderRadius: '8px',
-                        textAlign: 'center',
-                        border: '1px solid var(--status-success-border)',
-                      }}
-                    >
-                      <img
-                        src={signedResult.stampDataUrl}
-                        alt="Con dấu đã đóng"
-                        style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px' }}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* PDF Live Embedded Viewer Preview */}
-                {signedResult.signedPdfBlobUrl && (
-                  <div>
-                    <div style={{ fontWeight: 700, marginBottom: '6px', color: 'var(--text-main)' }}>
-                      Xem trước tệp PDF đã đóng dấu (Live Document Preview):
-                    </div>
-                    <div
-                      style={{
-                        height: '240px',
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        border: '1px solid var(--border-subtle)',
-                        background: '#1e293b',
-                      }}
-                    >
-                      <iframe
-                        src={signedResult.signedPdfBlobUrl}
-                        title="Signed PDF Preview"
-                        style={{ width: '100%', height: '100%', border: 'none' }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <strong>Tên tệp tin:</strong> {signedResult.packageData.fileName}
-                </div>
-                <div>
-                  <strong>Mã băm SHA-256:</strong>
-                  <div className="code-block" style={{ marginTop: '4px', padding: '8px', fontSize: '0.78rem' }}>
-                    {signedResult.packageData.documentHash}
-                  </div>
-                </div>
-
-                <div>
-                  <strong>Chữ ký ElGamal (r, s):</strong>
-                  <div className="code-block" style={{ marginTop: '4px', padding: '8px', fontSize: '0.78rem', color: '#a5b4fc' }}>
-                    r = {signedResult.packageData.signature.r.slice(0, 32)}...
-                    <br />
-                    s = {signedResult.packageData.signature.s.slice(0, 32)}...
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '10px' }}>
-                  {signedResult.signedPdfBytes && (
-                    <button className="btn btn-primary" onClick={handleDownloadSignedPdf}>
-                      <Download size={16} />
-                      <span>Tải File PDF Đã Đóng Dấu</span>
-                    </button>
-                  )}
-
-                  {signedResult.signedPdfBlobUrl && (
-                    <a
-                      href={signedResult.signedPdfBlobUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-secondary"
-                      style={{ textDecoration: 'none' }}
-                    >
-                      <ExternalLink size={16} />
-                      <span>Mở PDF Trong Tab Mới</span>
-                    </a>
-                  )}
-
-                  <button className="btn btn-outline" onClick={handleDownloadPackageJson}>
-                    <Download size={16} />
-                    <span>Tải Gói Chữ Ký (.sig.json)</span>
-                  </button>
-
-                  {onGoToVerifyWithPackage && (
-                    <button
-                      className="btn btn-outline"
-                      onClick={() =>
-                        onGoToVerifyWithPackage(
-                          signedResult.packageData,
-                          selectedFile,
-                          signMode === 'text' ? textContent : undefined
-                        )
-                      }
-                    >
-                      <Eye size={16} />
-                      <span>Xác thực ngay</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

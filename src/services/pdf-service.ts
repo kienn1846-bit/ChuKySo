@@ -232,8 +232,8 @@ export async function signPdfDocument(
 ): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.load(pdfBytes);
   const pages = pdfDoc.getPages();
-  const targetPageIndex = stampConfig && stampConfig.pageNumber <= pages.length ? stampConfig.pageNumber - 1 : pages.length - 1;
-  const targetPage = pages[targetPageIndex];
+  // Always stamp on the LAST page of the document
+  const targetPage = pages[pages.length - 1];
 
   if (stampConfig && stampConfig.enabled) {
     // Generate stamp png
@@ -379,8 +379,8 @@ export async function createSignedPdfFromText(
 
   const stampW = 460;
   const stampH = 180;
-  const stampX = canvasWidth - stampW - 80;
-  const stampY = canvasHeight - stampH - 120;
+  const stampX = Math.max(60, Math.min(canvasWidth - stampW - 60, (stampConfig.xPercent / 100) * (canvasWidth - stampW)));
+  const stampY = Math.max(160, Math.min(canvasHeight - stampH - 100, canvasHeight - ((stampConfig.yPercent / 100) * (canvasHeight - stampH)) - stampH));
 
   ctx.drawImage(stampImg, stampX, stampY, stampW, stampH);
 
@@ -397,7 +397,7 @@ export async function createSignedPdfFromText(
   ctx.fillText(`Mã băm SHA-256: ${packageData.documentHash}`, 80, canvasHeight - 60);
 
   ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
-  ctx.fillText(`Chứng thư số: ${packageData.certificate.serialNumber} | Thuật toán: ${packageData.signature.algorithm} | Hệ thống SignWCert PKI`, 80, canvasHeight - 42);
+  ctx.fillText(`Chứng thư số: ${packageData.certificate.serialNumber} | Thuật toán: ${packageData.signature.algorithm} | Hệ thống ChuKySo PKI`, 80, canvasHeight - 42);
 
   // Convert canvas to PNG and embed in PDF
   const pagePngDataUrl = canvas.toDataURL('image/png');
@@ -416,6 +416,276 @@ export async function createSignedPdfFromText(
 
   try {
     pdfDoc.setTitle(`[Signed] ${packageData.fileName}`);
+    pdfDoc.setAuthor(packageData.certificate.subject.commonName);
+  } catch {
+    // Ignore
+  }
+
+  return pdfDoc.save();
+}
+
+/**
+ * Generate a Formal Certificate of Digital Signature (Giấy Chứng Nhận Ký Số Điện Tử) for Word, Excel, and non-PDF files.
+ * Renders via high-res Canvas with official government / enterprise layout.
+ */
+export async function createSignedDocumentCertificatePdf(
+  packageData: SignedDocumentPackage,
+  stampConfig: VisualStampConfig
+): Promise<Uint8Array> {
+  const canvas = document.createElement('canvas');
+  const canvasWidth = 1190;
+  const canvasHeight = 1684;
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Could not create canvas context');
+
+  // Background
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+  // Outer decorative border
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = '#1e3a8a';
+  ctx.strokeRect(36, 36, canvasWidth - 72, canvasHeight - 72);
+
+  // Inner border
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = '#93c5fd';
+  ctx.strokeRect(44, 44, canvasWidth - 88, canvasHeight - 88);
+
+  // Top National Header
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#0f172a';
+  ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  ctx.fillText('CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', canvasWidth / 2, 90);
+
+  ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  ctx.fillStyle = '#334155';
+  ctx.fillText('Độc lập - Tự do - Hạnh phúc', canvasWidth / 2, 120);
+
+  ctx.beginPath();
+  ctx.moveTo(canvasWidth / 2 - 110, 134);
+  ctx.lineTo(canvasWidth / 2 + 110, 134);
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = '#475569';
+  ctx.stroke();
+
+  // Document Title
+  ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  ctx.fillStyle = '#1e3a8a';
+  ctx.fillText('GIẤY CHỨNG NHẬN KÝ SỐ ĐIỆN TỬ VĂN BẢN', canvasWidth / 2, 185);
+
+  ctx.font = 'italic 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  ctx.fillStyle = '#64748b';
+  ctx.fillText('(ELECTRONIC SIGNATURE CERTIFICATE OF COMPLETION)', canvasWidth / 2, 210);
+
+  // Section 1: File Information Box
+  let y = 250;
+  ctx.textAlign = 'left';
+  
+  // Section 1 Header
+  ctx.fillStyle = '#f1f5f9';
+  ctx.fillRect(80, y, canvasWidth - 160, 36);
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(80, y, canvasWidth - 160, 36);
+
+  ctx.fillStyle = '#1e3a8a';
+  ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  ctx.fillText('I. THÔNG TIN TÀI LIỆU KÝ SỐ GỐC (ORIGINAL DOCUMENT)', 95, y + 24);
+
+  // Section 1 Content
+  y += 50;
+  ctx.font = '15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  ctx.fillStyle = '#1e293b';
+
+  const fileExt = packageData.fileName.split('.').pop()?.toUpperCase() || 'FILE';
+  const fileTypeLabel = fileExt === 'DOCX' || fileExt === 'DOC' 
+    ? `Văn bản Microsoft Word (.${fileExt.toLowerCase()})`
+    : fileExt === 'XLSX' || fileExt === 'XLS'
+    ? `Bảng tính Microsoft Excel (.${fileExt.toLowerCase()})`
+    : `${packageData.fileType || 'Tệp tin nhị phân'} (.${fileExt.toLowerCase()})`;
+
+  ctx.fillText(`• Tên tệp tin gốc:`, 95, y);
+  ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  ctx.fillStyle = '#0f172a';
+  ctx.fillText(packageData.fileName, 280, y);
+
+  y += 28;
+  ctx.font = '15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  ctx.fillStyle = '#1e293b';
+  ctx.fillText(`• Định dạng tệp:`, 95, y);
+  ctx.fillText(fileTypeLabel, 280, y);
+
+  y += 28;
+  ctx.fillText(`• Dung lượng tệp:`, 95, y);
+  ctx.fillText(`${(packageData.fileSize / 1024).toFixed(1)} KB (${packageData.fileSize.toLocaleString('vi-VN')} bytes)`, 280, y);
+
+  y += 28;
+  ctx.fillText(`• Thời gian thực hiện ký:`, 95, y);
+  ctx.fillText(new Date(packageData.signedAt).toLocaleString('vi-VN'), 280, y);
+
+  y += 28;
+  ctx.fillText(`• Mã băm SHA-256 tệp:`, 95, y);
+  ctx.font = 'bold 13px "JetBrains Mono", Consolas, monospace';
+  ctx.fillStyle = '#1e3a8a';
+  ctx.fillText(packageData.documentHash, 280, y);
+
+  // Section 2: Signer & Certificate Information Box
+  y += 45;
+  ctx.fillStyle = '#f1f5f9';
+  ctx.fillRect(80, y, canvasWidth - 160, 36);
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.strokeRect(80, y, canvasWidth - 160, 36);
+
+  ctx.fillStyle = '#1e3a8a';
+  ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  ctx.fillText('II. CHỦ THỂ KÝ SỐ & CHỨNG THƯ PKI (SIGNER & CERTIFICATE)', 95, y + 24);
+
+  y += 50;
+  ctx.font = '15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  ctx.fillStyle = '#1e293b';
+
+  ctx.fillText(`• Họ tên người ký:`, 95, y);
+  ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  ctx.fillStyle = '#0f172a';
+  ctx.fillText(`${packageData.certificate.subject.commonName} (${packageData.certificate.subject.email})`, 280, y);
+
+  y += 28;
+  ctx.font = '15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  ctx.fillStyle = '#1e293b';
+  ctx.fillText(`• Đơn vị / Cơ quan:`, 95, y);
+  ctx.fillText(`${packageData.certificate.subject.organization} ${packageData.certificate.subject.department ? `- ${packageData.certificate.subject.department}` : ''}`, 280, y);
+
+  y += 28;
+  ctx.fillText(`• Cơ quan cấp phát (CA):`, 95, y);
+  ctx.fillText(packageData.certificate.issuer.commonName, 280, y);
+
+  y += 28;
+  ctx.fillText(`• Mã số chứng thư số:`, 95, y);
+  ctx.font = 'bold 14px "JetBrains Mono", Consolas, monospace';
+  ctx.fillStyle = '#0284c7';
+  ctx.fillText(packageData.certificate.serialNumber, 280, y);
+
+  y += 28;
+  ctx.font = '15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  ctx.fillStyle = '#1e293b';
+  ctx.fillText(`• Thời hạn chứng thư:`, 95, y);
+  ctx.fillText(`Đến ngày ${new Date(packageData.certificate.validTo).toLocaleDateString('vi-VN')}`, 280, y);
+
+  // Section 3: Cryptographic Signature Parameters Box
+  y += 45;
+  ctx.fillStyle = '#f1f5f9';
+  ctx.fillRect(80, y, canvasWidth - 160, 36);
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.strokeRect(80, y, canvasWidth - 160, 36);
+
+  ctx.fillStyle = '#1e3a8a';
+  ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  ctx.fillText('III. THÔNG SỐ CHỮ KÝ SỐ ELGAMAL (CRYPTOGRAPHIC SIGNATURE)', 95, y + 24);
+
+  y += 50;
+  ctx.font = '15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  ctx.fillStyle = '#1e293b';
+
+  ctx.fillText(`• Thuật toán chữ ký số:`, 95, y);
+  ctx.fillText(`ElGamal-${packageData.certificate.publicKey.bitLength || 1024} bit trên trường Z_p* (Băm SHA-256)`, 280, y);
+
+  y += 26;
+  ctx.fillText(`• Chữ ký thành phần r:`, 95, y);
+  ctx.font = '12px "JetBrains Mono", Consolas, monospace';
+  ctx.fillStyle = '#475569';
+  ctx.fillText(`${packageData.signature.r.slice(0, 64)}...`, 280, y);
+
+  y += 24;
+  ctx.font = '15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  ctx.fillStyle = '#1e293b';
+  ctx.fillText(`• Chữ ký thành phần s:`, 95, y);
+  ctx.font = '12px "JetBrains Mono", Consolas, monospace';
+  ctx.fillStyle = '#475569';
+  ctx.fillText(`${packageData.signature.s.slice(0, 64)}...`, 280, y);
+
+  // Legal Assurance Notice Box
+  y += 45;
+  ctx.fillStyle = '#f8fafc';
+  ctx.fillRect(80, y, 480, 190);
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.strokeRect(80, y, 480, 190);
+
+  ctx.fillStyle = '#047857';
+  ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  ctx.fillText('✓ BẢO ĐẢM TÍNH TOÀN VẸN & GIÁ TRỊ PHÁP LÝ', 95, y + 30);
+
+  ctx.fillStyle = '#334155';
+  ctx.font = '13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  const noticeText = [
+    '• Giấy chứng nhận này xác nhận tệp tin gốc đính kèm',
+    '  đã được ký số hợp lệ và bảo toàn vẹn.',
+    '• Tệp tin gốc không bị chỉnh sửa sau thời điểm ký.',
+    '• Gói chữ ký số (.sig.json) đính kèm chứa trọn vẹn',
+    '  chữ ký ElGamal và chứng thư số để xác thực độc lập.',
+    '• Mọi thay đổi trên tệp gốc sẽ làm vô hiệu hóa chữ ký.'
+  ];
+  let noticeY = y + 55;
+  for (const nLine of noticeText) {
+    ctx.fillText(nLine, 95, noticeY);
+    noticeY += 21;
+  }
+
+  // Draw Visual Stamp on the right
+  const stampDataUrl = await generateVisualStampDataUrl(
+    stampConfig,
+    packageData.certificate,
+    packageData.signature
+  );
+
+  const stampImg = new Image();
+  stampImg.src = stampDataUrl;
+  await new Promise((resolve) => {
+    stampImg.onload = resolve;
+  });
+
+  const stampW = 460;
+  const stampH = 180;
+  const stampX = canvasWidth - stampW - 80;
+  const stampY = y + 5;
+
+  ctx.drawImage(stampImg, stampX, stampY, stampW, stampH);
+
+  // Bottom Footer
+  ctx.beginPath();
+  ctx.moveTo(80, canvasHeight - 85);
+  ctx.lineTo(canvasWidth - 80, canvasHeight - 85);
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.stroke();
+
+  ctx.fillStyle = '#64748b';
+  ctx.font = '12px "JetBrains Mono", Consolas, monospace';
+  ctx.fillText(`Mã băm toàn vẹn: ${packageData.documentHash}`, 80, canvasHeight - 60);
+
+  ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+  ctx.fillText(`Hệ thống Ký số Văn bản ElGamal & Quản lý Chứng thực PKI (SignWCert)`, 80, canvasHeight - 42);
+
+  // Convert canvas to PDF
+  const pagePngDataUrl = canvas.toDataURL('image/png');
+  const pagePngBytes = dataUrlToBytes(pagePngDataUrl);
+
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([595.28, 841.89]);
+  const embeddedPng = await pdfDoc.embedPng(pagePngBytes);
+
+  page.drawImage(embeddedPng, {
+    x: 0,
+    y: 0,
+    width: 595.28,
+    height: 841.89,
+  });
+
+  try {
+    pdfDoc.setTitle(`[Certificate] ${packageData.fileName}`);
     pdfDoc.setAuthor(packageData.certificate.subject.commonName);
   } catch {
     // Ignore

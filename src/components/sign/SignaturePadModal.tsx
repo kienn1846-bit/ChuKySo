@@ -229,61 +229,61 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
   };
 
   return (
-    <div className="modal-backdrop">
-      <div className="modal-card" style={{ maxWidth: '780px', width: '95%' }}>
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-card" style={{ maxWidth: '800px', width: '95%' }} onClick={(e) => e.stopPropagation()}>
         {/* Modal Header */}
-        <div className="modal-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div
               style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '8px',
+                width: '42px',
+                height: '42px',
+                borderRadius: 'var(--radius-md)',
                 background: 'rgba(37, 99, 235, 0.15)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'var(--accent-blue)',
+                color: 'var(--brand-blue)',
               }}
             >
-              <PenTool size={20} />
+              <PenTool size={22} />
             </div>
             <div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>
-                Thiết kế chữ ký & con dấu điện tử
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
+                Thiết Kế Chữ Ký & Mẫu Con Dấu Điện Tử
               </h3>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
-                Tạo chữ ký tay, chọn nền trắng/trong suốt và xác lập thông tin chứng thực chuẩn văn bản
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+                Khắc chữ ký tay, chọn nền trắng/trong suốt và xác lập thông tin chứng thực chuẩn văn bản pháp lý
               </p>
             </div>
           </div>
-          <button className="btn-icon" onClick={onClose}>
-            <X size={20} />
+          <button className="btn btn-outline btn-sm" onClick={onClose}>
+            <X size={16} />
           </button>
         </div>
 
         {/* Studio Navigation Tabs */}
-        <div style={{ display: 'flex', gap: '6px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '14px', marginBottom: '18px' }}>
           <button
             className={`btn btn-sm ${tab === 'draw' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setTab('draw')}
           >
-            <PenTool size={14} />
-            <span>1. Vẽ chữ ký tay</span>
+            <PenTool size={15} />
+            <span>1. Vẽ Chữ Ký Tay</span>
           </button>
           <button
             className={`btn btn-sm ${tab === 'upload' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setTab('upload')}
           >
-            <Upload size={14} />
-            <span>2. Tải ảnh chữ ký</span>
+            <Upload size={15} />
+            <span>2. Tải Ảnh Chữ Ký</span>
           </button>
           <button
             className={`btn btn-sm ${tab === 'config' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setTab('config')}
           >
-            <Sliders size={14} />
-            <span>3. Thông tin & hiệu lực</span>
+            <Sliders size={15} />
+            <span>3. Thông Tin & Hiệu Lực</span>
           </button>
         </div>
 
@@ -391,7 +391,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
               )}
             </div>
             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '6px' }}>
-              💡 Nét ký sẽ tự động được làm mịn và tích hợp sắc nét vào con dấu điện tử nền trắng.
+              Nét ký sẽ tự động được làm mịn và tích hợp sắc nét vào con dấu điện tử nền trắng.
             </div>
           </div>
         )}

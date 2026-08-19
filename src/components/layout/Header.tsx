@@ -5,11 +5,11 @@ import {
   Key,
   FileSignature,
   SearchCheck,
-  FlaskConical,
   BookOpen,
   Sun,
   Moon,
   RotateCcw,
+  CheckCircle2,
 } from 'lucide-react';
 import { DigitalCertificate } from '../../types';
 
@@ -40,20 +40,17 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="header-bar">
       <div className="header-container">
-        {/* Brand */}
+        {/* Brand Logo & SaaS Tag */}
         <div className="brand-logo" onClick={() => setActiveTab('pki')} style={{ cursor: 'pointer' }}>
           <div className="brand-icon-box">
-            <ShieldCheck size={22} />
+            <ShieldCheck size={24} />
           </div>
           <div>
             <div className="brand-title">
-              <span>SignWCert</span>
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--accent-cyan)', background: 'rgba(6, 182, 212, 0.15)', padding: '2px 6px', borderRadius: '4px' }}>
-                ElGamal PKI v1.0
-              </span>
+              <span>ChuKySo</span>
             </div>
             <div className="brand-subtitle">
-              Hệ thống ký số văn bản ElGamal & quản lý chứng thực PKI
+              Nền tảng ký số văn bản điện tử & quản lý chứng thực PKI
             </div>
           </div>
         </div>
@@ -66,27 +63,37 @@ export const Header: React.FC<HeaderProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                padding: '6px 12px',
+                padding: '6px 14px',
                 background: 'var(--bg-input)',
-                borderRadius: '8px',
+                borderRadius: 'var(--radius-md)',
                 border: '1px solid var(--border-subtle)',
-                fontSize: '0.82rem',
+                fontSize: '0.84rem',
               }}
+              title={`Chứng thư số của ${activeCert.subject.commonName}`}
             >
-              <Key size={14} color="var(--accent-cyan)" />
-              <div>
-                <span style={{ color: 'var(--text-muted)' }}>Người ký hiện tại: </span>
-                <strong style={{ color: 'var(--text-main)' }}>{activeCert.subject.commonName}</strong>
-              </div>
+              <div
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: '#10b981',
+                  boxShadow: '0 0 8px #10b981',
+                }}
+              />
+              <Key size={15} color="var(--accent-cyan)" />
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>Người ký hiện tại:</span>
+              <strong style={{ color: 'var(--text-main)', fontWeight: 700 }}>
+                {activeCert.subject.commonName}
+              </strong>
             </div>
           )}
 
-          {/* Reset Demo Data Button - subtle icon-only */}
+          {/* Reset Demo Data Button */}
           <button
             className="btn btn-outline btn-sm"
             onClick={onResetStorage}
-            title="Khôi phục dữ liệu mẫu ban đầu (Reset Demo)"
-            style={{ display: 'flex', alignItems: 'center', gap: '4px', opacity: 0.6 }}
+            title="Khôi phục dữ liệu mẫu ban đầu (Reset Demo Data)"
+            style={{ display: 'flex', alignItems: 'center', gap: '4px', opacity: 0.8 }}
           >
             <RotateCcw size={14} />
           </button>
@@ -97,12 +104,12 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             title="Chuyển đổi giao diện Sáng / Tối"
           >
-            {theme === 'dark' ? <Sun size={15} color="#f59e0b" /> : <Moon size={15} color="#6366f1" />}
+            {theme === 'dark' ? <Sun size={15} color="#f59e0b" /> : <Moon size={15} color="#1c54fe" />}
           </button>
         </div>
       </div>
 
-      {/* Nav Tabs */}
+      {/* Nav Tabs Bar */}
       <div className="nav-tabs-wrapper">
         <div className="nav-tabs-container">
           {navTabs.map((tab) => {
@@ -114,7 +121,7 @@ export const Header: React.FC<HeaderProps> = ({
                 className={`nav-tab-btn ${isActive ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab.id)}
               >
-                <Icon size={16} />
+                <Icon size={17} />
                 <span>{tab.label}</span>
               </button>
             );

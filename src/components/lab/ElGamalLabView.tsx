@@ -93,7 +93,7 @@ export const ElGamalLabView: React.FC = () => {
   } | null>(null);
 
   const [keyPreset, setKeyPreset] = useState<'demo-16' | 'demo-32' | 'safe-64' | 'safe-128' | 'safe-512' | 'safe-1024'>('demo-16');
-  const [customText, setCustomText] = useState('Báo cáo Bài tập lớn Mật mã học 2026');
+  const [customText, setCustomText] = useState('');
   const [stepLogs, setStepLogs] = useState<MathStepLog[]>([]);
   const [verifyLogs, setVerifyLogs] = useState<MathStepLog[]>([]);
 
@@ -357,9 +357,10 @@ export const ElGamalLabView: React.FC = () => {
   };
 
   const runStepByStepDemo = async () => {
+    const textToSign = customText.trim() || 'Văn bản mẫu minh họa thuật toán ElGamal';
     const bitLen = keyPreset === 'demo-16' ? 16 : keyPreset === 'demo-32' ? 32 : keyPreset === 'safe-64' ? 64 : keyPreset === 'safe-128' ? 128 : keyPreset === 'safe-512' ? 512 : 1024;
     const keyPair = generateElGamalKeyPair(bitLen as any, 'Lab Key', true);
-    const docHash = await hashString(customText);
+    const docHash = await hashString(textToSign);
     const signResult = signElGamal(docHash, keyPair.publicKey, keyPair.privateKey);
     const vResult = verifyElGamal(docHash, signResult.signature, keyPair.publicKey);
 
@@ -382,13 +383,10 @@ export const ElGamalLabView: React.FC = () => {
         }}
       >
         <div>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
-            <FlaskConical size={24} color="var(--accent-cyan)" />
-            <span>Cơ Sở Toán Học Số Học Modulo</span>
+          <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
+            <FlaskConical size={24} color="var(--brand-blue)" />
+            <span>Cơ sở toán học và kiểm tra thuật toán</span>
           </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginTop: '6px', margin: 0 }}>
-            Công cụ tính tay, mô phỏng thuật toán Euclid mở rộng, lũy thừa nhị phân và kiểm tra phần tử sinh.
-          </p>
         </div>
 
         {/* Tab switch buttons */}

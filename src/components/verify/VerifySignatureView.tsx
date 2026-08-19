@@ -250,12 +250,12 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Title */}
       <div>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <SearchCheck size={24} color="var(--status-success)" />
-          <span>Xác thực chữ ký số 3 lớp</span>
+        <h2 style={{ fontSize: '1.55rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <SearchCheck size={26} color="var(--brand-blue)" />
+          <span>Trung Tâm Xác Thực & Thẩm Định Chữ Ký Số (Audit & Verification Center)</span>
         </h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '4px' }}>
-          Thẩm định tính toàn vẹn văn bản (SHA-256), đối chiếu phương trình đồng dư toán học ElGamal <MathView math="v_1 \equiv v_2 \pmod p" /> và kiểm tra chuỗi chứng thực PKI Root CA.
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginTop: '4px' }}>
+          Hệ thống kiểm toán mật mã 3 lớp: Toàn vẹn mã băm SHA-256, Thẩm định phương trình đồng dư ElGamal <MathView math="v_1 \equiv v_2 \pmod p" /> và Xác thực xích chứng thư PKI Root CA.
         </p>
       </div>
 
@@ -332,7 +332,7 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
                 className={`btn btn-sm ${verifyMode === 'manual' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => setVerifyMode('manual')}
               >
-                <FileText size={14} /> Kiểm tra văn bản thuần
+                <FileText size={14} /> Văn bản
               </button>
             </div>
 
@@ -347,19 +347,19 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
                 <div
                   className="dropzone"
                   onClick={() => docInputRef.current?.click()}
-                  style={{ padding: '24px 16px' }}
+                  style={{ padding: '36px 16px' }}
                 >
-                  <Upload className="dropzone-icon" />
+                  <Upload className="dropzone-icon" style={{ width: '40px', height: '40px', marginBottom: '8px' }} />
                   {docFile ? (
                     <div>
-                      <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{docFile.name}</div>
-                      <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                      <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '1rem' }}>{docFile.name}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                         {(docFile.size / 1024).toFixed(1)} KB | Bấm để đổi tệp
                       </div>
                     </div>
                   ) : (
                     <div>
-                      <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>
+                      <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.92rem' }}>
                         Chọn tệp tin gốc cần xác thực
                       </div>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px' }}>
@@ -371,24 +371,25 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
               </div>
             ) : (
               <div className="form-group">
-                <label className="form-label">Nhập nội dung văn bản kiểm tra:</label>
+                <label className="form-label" style={{ fontSize: '0.82rem' }}>Nhập nội dung văn bản kiểm tra:</label>
                 <textarea
                   className="form-textarea"
-                  rows={6}
+                  rows={8}
                   value={manualText}
                   onChange={(e) => setManualText(e.target.value)}
                   placeholder="Dán nội dung văn bản cần kiểm chứng..."
+                  style={{ minHeight: '190px', fontSize: '0.88rem', padding: '10px 14px', lineHeight: '1.5' }}
                 />
               </div>
             )}
 
             {/* Verify Action Button */}
-            <div style={{ marginTop: '20px' }}>
+            <div style={{ marginTop: '16px' }}>
               <button
                 className="btn btn-success btn-lg"
-                style={{ width: '100%' }}
+                style={{ width: '100%', padding: '12px 20px', fontSize: '1rem' }}
                 onClick={handleVerify}
-                disabled={isVerifying || !sigPackage}
+                disabled={isVerifying || !sigPackage || (verifyMode === 'manual' ? !manualText.trim() : !docFile)}
               >
                 <SearchCheck size={20} />
                 <span>{isVerifying ? 'Đang thẩm định toán học 3 lớp...' : 'Tiến hành xác thực chữ ký'}</span>
@@ -398,7 +399,7 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
         </div>
 
         {/* Verification Result Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {verificationResult ? (
             <div
               className="card"
@@ -407,100 +408,104 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
                 background: verificationResult.isValid
                   ? 'linear-gradient(180deg, rgba(16, 185, 129, 0.1), var(--bg-card))'
                   : 'linear-gradient(180deg, rgba(239, 68, 68, 0.1), var(--bg-card))',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
               }}
             >
-              {/* Verdict Header */}
-              <div className="card-header">
+              {/* Verdict Header with Immediate Export Button */}
+              <div className="card-header" style={{ marginBottom: '12px', paddingBottom: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   {verificationResult.isValid ? (
                     <div style={{ padding: '6px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.2)', color: 'var(--status-success)' }}>
-                      <CheckCircle2 size={24} />
+                      <CheckCircle2 size={22} />
                     </div>
                   ) : (
                     <div style={{ padding: '6px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.2)', color: 'var(--status-danger)' }}>
-                      <XCircle size={24} />
+                      <XCircle size={22} />
                     </div>
                   )}
                   <div>
-                    <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: verificationResult.isValid ? 'var(--status-success)' : 'var(--status-danger)' }}>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: verificationResult.isValid ? 'var(--status-success)' : 'var(--status-danger)' }}>
                       {verificationResult.isValid ? 'CHỮ KÝ HỢP LỆ & TOÀN VẸN' : 'CHỮ KÝ KHÔNG HỢP LỆ / CẢNH BÁO'}
                     </h3>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                      Xác thực lúc: {new Date(verificationResult.verifiedAt).toLocaleString('vi-VN')}
+                    <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                      Thời gian xác thực: {new Date(verificationResult.verifiedAt).toLocaleString('vi-VN')}
                     </div>
                   </div>
                 </div>
 
-                <span className={`badge ${verificationResult.isValid ? 'badge-success' : 'badge-danger'}`}>
-                  {verificationResult.isValid ? 'Đạt 3/3 lớp' : 'Không đạt'}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button className="btn btn-primary btn-sm" onClick={handleExportReportPdf} style={{ fontSize: '0.82rem' }}>
+                    <Download size={14} />
+                    <span>Xuất Biên Bản PDF</span>
+                  </button>
+                  <span className={`badge ${verificationResult.isValid ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.76rem' }}>
+                    {verificationResult.isValid ? 'Đạt 3/3 lớp' : 'Không đạt'}
+                  </span>
+                </div>
               </div>
 
-              {/* 3-Layer Check Progress */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '18px' }}>
+              {/* 3-Layer Check Progress - Expanded */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
                 {verificationResult.checks.map((c, idx) => (
                   <div
                     key={idx}
                     style={{
                       background: 'var(--bg-input)',
-                      padding: '12px 14px',
+                      padding: '10px 14px',
                       borderRadius: '8px',
                       border: '1px solid var(--border-subtle)',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontWeight: 700, fontSize: '0.86rem', color: 'var(--text-main)' }}>
                         {c.name}
                       </span>
-                      <span className={`badge ${c.status === 'pass' ? 'badge-success' : c.status === 'warning' ? 'badge-warning' : 'badge-danger'}`}>
+                      <span className={`badge ${c.status === 'pass' ? 'badge-success' : c.status === 'warning' ? 'badge-warning' : 'badge-danger'}`} style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
                         {c.status === 'pass' ? '✓ ĐẠT' : c.status === 'warning' ? '! CẢNH BÁO' : '✗ KHÔNG ĐẠT'}
                       </span>
                     </div>
-                    <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{c.message}</div>
-                    {c.detail && (
-                      <div style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--text-dim)', marginTop: '4px' }}>
-                        {c.detail}
-                      </div>
-                    )}
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>{c.message}</div>
                   </div>
                 ))}
               </div>
 
               {/* Math Equation Visualizer Dropdown */}
-              <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '14px' }}>
+              <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '10px', flex: 1 }}>
                 <button
                   className="btn btn-outline btn-sm"
-                  style={{ width: '100%', justifyContent: 'space-between' }}
+                  style={{ width: '100%', justifyContent: 'space-between', padding: '6px 12px', fontSize: '0.84rem' }}
                   onClick={() => setShowMathDetails(!showMathDetails)}
                 >
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Layers size={15} color="var(--accent-indigo)" />
                     <span>Chi Tiết Đối Chiếu Phương Trình Đồng Dư ElGamal</span>
                   </span>
-                  {showMathDetails ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  {showMathDetails ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                 </button>
 
                 {showMathDetails && (
-                  <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.82rem' }}>
-                    <div className="math-formula" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                  <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.82rem' }}>
+                    <div className="math-formula" style={{ padding: '8px 12px', margin: 0, flexDirection: 'column', alignItems: 'flex-start' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ color: 'var(--text-muted)' }}>Vế trái:</span>
                         <MathView math="v_1 = g^m \pmod p" />
                       </div>
-                      <code style={{ fontSize: '0.78rem', color: '#38bdf8', wordBreak: 'break-all' }}>
+                      <code style={{ fontSize: '0.76rem', color: '#38bdf8', wordBreak: 'break-all' }}>
                         = {verificationResult.mathDetails.v1}
                       </code>
                     </div>
-                    <div className="math-formula" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    <div className="math-formula" style={{ padding: '8px 12px', margin: 0, flexDirection: 'column', alignItems: 'flex-start' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ color: 'var(--text-muted)' }}>Vế phải:</span>
                         <MathView math="v_2 = (y^r \cdot r^s) \pmod p" />
                       </div>
-                      <code style={{ fontSize: '0.78rem', color: '#10b981', wordBreak: 'break-all' }}>
+                      <code style={{ fontSize: '0.76rem', color: '#10b981', wordBreak: 'break-all' }}>
                         = {verificationResult.mathDetails.v2}
                       </code>
                     </div>
-                    <div style={{ padding: '8px 12px', borderRadius: '6px', background: verificationResult.mathDetails.isEqual ? 'var(--status-success-bg)' : 'var(--status-danger-bg)', border: `1px solid ${verificationResult.mathDetails.isEqual ? 'var(--status-success-border)' : 'var(--status-danger-border)'}`, color: verificationResult.mathDetails.isEqual ? 'var(--status-success)' : 'var(--status-danger)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <div style={{ padding: '8px 12px', borderRadius: '6px', background: verificationResult.mathDetails.isEqual ? 'var(--status-success-bg)' : 'var(--status-danger-bg)', border: `1px solid ${verificationResult.mathDetails.isEqual ? 'var(--status-success-border)' : 'var(--status-danger-border)'}`, color: verificationResult.mathDetails.isEqual ? 'var(--status-success)' : 'var(--status-danger)', fontWeight: 600, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span>Kết luận:</span>
                       <MathView math={verificationResult.mathDetails.isEqual ? 'v_1 \\equiv v_2 \\pmod p' : 'v_1 \\not\\equiv v_2 \\pmod p'} />
                       <span>({verificationResult.mathDetails.isEqual ? 'Phương trình đồng dư nghiệm đúng' : 'Phương trình không đồng dư'})</span>
@@ -508,22 +513,14 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
                   </div>
                 )}
               </div>
-
-              {/* Action: Export Report PDF */}
-              <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
-                <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleExportReportPdf}>
-                  <Download size={16} />
-                  <span>Xuất Biên Bản Kiểm Tra PDF</span>
-                </button>
-              </div>
             </div>
           ) : (
-            <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
-              <SearchCheck size={48} color="var(--text-dim)" style={{ margin: '0 auto 16px' }} />
-              <h4 style={{ color: 'var(--text-main)', fontWeight: 700, marginBottom: '6px' }}>
+            <div className="card" style={{ textAlign: 'center', padding: '48px 24px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <SearchCheck size={48} color="var(--text-dim)" style={{ marginBottom: '14px' }} />
+              <h4 style={{ color: 'var(--text-main)', fontWeight: 700, marginBottom: '6px', fontSize: '1.05rem' }}>
                 Chưa Có Kết Quả Xác Thực
               </h4>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.86rem', maxWidth: '380px' }}>
                 Tải lên tệp chữ ký số <code>.sig.json</code> và tệp tài liệu gốc ở cột bên trái rồi bấm <strong>"Tiến Hành Xác Thực Chữ Ký"</strong>.
               </p>
             </div>
