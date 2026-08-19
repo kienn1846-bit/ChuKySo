@@ -4,7 +4,7 @@
 ---
 
 ## 🌟 Giới Thiệu Tổng Quan
-**SignWCert** là ứng dụng hoàn chỉnh phục vụ báo cáo bài tập lớn đại học, triển khai lược đồ chữ ký số **ElGamal** trên trường hữu hạn $\mathbb{Z}_p^*$ kết hợp mô hình quản lý **Chứng thư số điện tử (PKI)** và đóng dấu điện tử trực quan trên tài liệu PDF.
+**ChuKySo** là ứng dụng hoàn chỉnh phục vụ báo cáo bài tập lớn đại học, triển khai lược đồ chữ ký số **ElGamal** trên trường hữu hạn $\mathbb{Z}_p^*$ kết hợp mô hình quản lý **Chứng thư số điện tử (PKI)** và đóng dấu điện tử trực quan trên tài liệu PDF.
 
 Sản phẩm được thiết kế với tiêu chí:
 1. **Toán học chính xác 100%**: Sử dụng số học số nguyên lớn `BigInt` tự phát triển, triển khai thuật toán Miller-Rabin, sinh số nguyên tố an toàn $p = 2q + 1$, tìm căn nguyên thuỷ $\alpha$, giải thuật Euclid mở rộng và luỹ thừa modulo nhị phân.
