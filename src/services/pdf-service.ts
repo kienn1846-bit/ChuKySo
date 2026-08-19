@@ -72,11 +72,28 @@ function formatAdobeDate(dateString?: string): { dateStr: string; timeStr: strin
 }
 
 /**
+ * Helper to get the exact hex color from stamp color preset
+ */
+export function getStampInkColor(color?: string): string {
+  switch (color) {
+    case 'crimson':
+      return '#dc2626';
+    case 'emerald':
+      return '#059669';
+    case 'slate':
+      return '#0f172a';
+    case 'blue':
+    default:
+      return '#0044cc';
+  }
+}
+
+/**
  * Generate a visual stamp image as Data URL using HTML Canvas
  * Matches exact Adobe Acrobat / Standard Personal Digital Signature:
- * - Left: Blue Handwritten Signature + Diagonal Stroke + Full Name (Nguyễn Văn A)
- * - Right: "Digitally signed by Nguyễn Văn A \n Date: YYYY.MM.DD \n HH:mm:ss +07'00'"
- * - Pure White Background / Transparent, NO QR, NO Reason
+ * - Left: Handwritten/Cursive Signature + Full Name
+ * - Right: "Digitally signed by [Name] \n Date: YYYY.MM.DD \n HH:mm:ss +07'00'"
+ * - Pure White Background / Transparent, NO QR
  */
 export async function generateVisualStampDataUrl(
   stampConfig: VisualStampConfig,
@@ -101,9 +118,16 @@ export async function generateVisualStampDataUrl(
   }
 
   const signerName = stampConfig.signerName || certificate.subject.commonName || 'Nguyễn Văn A';
-  const inkColor = stampConfig.color === 'crimson' ? '#dc2626' : '#0044cc';
+  const inkColor = getStampInkColor(stampConfig.color);
 
-  // 2. Left Column: Handwritten Signature + Diagonal Baseline + Printed Name
+  // 2. Stamp Outer Border
+  ctx.save();
+  ctx.strokeStyle = inkColor;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(1, 1, width - 2, height - 2);
+  ctx.restore();
+
+  // 3. Left Column: Handwritten Signature + Diagonal Baseline + Printed Name
   const hasHandwritten = !!stampConfig.handwrittenSignatureUrl;
 
   if (hasHandwritten && stampConfig.handwrittenSignatureUrl) {
@@ -126,12 +150,26 @@ export async function generateVisualStampDataUrl(
       }
       const sigX = 35 + (maxSigW - drawW) / 2;
       const sigY = 12 + (maxSigH - drawH) / 2;
-      ctx.drawImage(sigImg, sigX, sigY, drawW, drawH);
+
+      // Color tint the transparent signature image to match the selected stamp ink color
+      const tintCanvas = document.createElement('canvas');
+      tintCanvas.width = drawW;
+      tintCanvas.height = drawH;
+      const tCtx = tintCanvas.getContext('2d');
+      if (tCtx) {
+        tCtx.drawImage(sigImg, 0, 0, drawW, drawH);
+        tCtx.globalCompositeOperation = 'source-in';
+        tCtx.fillStyle = inkColor;
+        tCtx.fillRect(0, 0, drawW, drawH);
+        ctx.drawImage(tintCanvas, sigX, sigY);
+      } else {
+        ctx.drawImage(sigImg, sigX, sigY, drawW, drawH);
+      }
     } catch {
       drawDefaultCursiveSignature(ctx, signerName, inkColor);
     }
   } else {
-    // Draw natural default blue cursive signature
+    // Draw natural cursive signature with the selected ink color
     drawDefaultCursiveSignature(ctx, signerName, inkColor);
   }
 
@@ -141,7 +179,7 @@ export async function generateVisualStampDataUrl(
   ctx.textAlign = 'center';
   ctx.fillText(signerName, 120, 142);
 
-  // 3. Right Column: Adobe Standard Text Block
+  // 4. Right Column: Adobe Standard Text Block
   const { dateStr, timeStr } = formatAdobeDate(stampConfig.dateString);
   const rightX = 232;
   let textY = 32;

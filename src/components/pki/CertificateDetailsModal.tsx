@@ -37,7 +37,7 @@ export const CertificateDetailsModal: React.FC<CertificateDetailsModalProps> = (
             </div>
             <div>
               <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                Chi Tiết Chứng Thư Số Điện Tử X.509
+                Chi tiết chứng thư số điện tử X.509
               </h3>
               <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
                 Mã số serial: <code style={{ color: 'var(--brand-blue)' }}>{cert.serialNumber}</code>
@@ -66,7 +66,7 @@ export const CertificateDetailsModal: React.FC<CertificateDetailsModalProps> = (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <ShieldCheck size={20} color={cert.status === 'active' ? 'var(--status-success)' : 'var(--status-danger)'} />
               <strong style={{ color: cert.status === 'active' ? 'var(--status-success)' : 'var(--status-danger)', fontSize: '0.94rem' }}>
-                Trạng thái: {cert.status === 'active' ? 'HỢP LỆ & ĐANG HOẠT ĐỘNG' : 'ĐÃ BỊ THU HỒI (REVOKED)'}
+                Trạng thái: {cert.status === 'active' ? 'Hợp lệ & đang hoạt động' : 'Đã bị thu hồi (Revoked)'}
               </strong>
             </div>
             <span className="badge badge-blue">
@@ -79,7 +79,7 @@ export const CertificateDetailsModal: React.FC<CertificateDetailsModalProps> = (
             {/* Subject Box */}
             <div style={{ background: 'var(--bg-input)', padding: '18px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
               <div style={{ fontWeight: 700, color: 'var(--brand-blue)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem' }}>
-                <User size={16} /> Chủ Thể (Subject)
+                <User size={16} /> Chủ thể (Subject)
               </div>
               <div style={{ fontSize: '0.88rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div><strong>Họ và tên:</strong> {cert.subject.commonName}</div>
@@ -93,7 +93,7 @@ export const CertificateDetailsModal: React.FC<CertificateDetailsModalProps> = (
             {/* Issuer Box */}
             <div style={{ background: 'var(--bg-input)', padding: '18px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
               <div style={{ fontWeight: 700, color: 'var(--accent-indigo)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem' }}>
-                <Building size={16} /> Cơ Quan Cấp Phát (Issuer)
+                <Building size={16} /> Cơ quan cấp phát (Issuer)
               </div>
               <div style={{ fontSize: '0.88rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div><strong>Tên CA:</strong> {cert.issuer.commonName}</div>
@@ -110,7 +110,7 @@ export const CertificateDetailsModal: React.FC<CertificateDetailsModalProps> = (
           {/* Cryptographic Public Key Info */}
           <div style={{ background: 'var(--bg-input)', padding: '18px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
             <div style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem' }}>
-              <Key size={16} color="var(--brand-blue)" /> Thông Tin Khoá Công Khai ElGamal ({cert.publicKey.bitLength || 1024}-bit)
+              <Key size={16} color="var(--brand-blue)" /> Thông tin khóa công khai ElGamal ({cert.publicKey.bitLength || 1024}-bit)
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.84rem' }}>
@@ -127,7 +127,7 @@ export const CertificateDetailsModal: React.FC<CertificateDetailsModalProps> = (
                 </div>
               </div>
               <div>
-                <span style={{ color: 'var(--text-muted)' }}>Khoá công khai (<MathView math="y = g^x \pmod p" />): </span>
+                <span style={{ color: 'var(--text-muted)' }}>Khóa công khai (<MathView math="y = g^x \pmod p" />): </span>
                 <div className="code-block" style={{ marginTop: '4px', padding: '8px', fontSize: '0.76rem' }}>
                   {cert.publicKey.y}
                 </div>
@@ -152,12 +152,12 @@ export const CertificateDetailsModal: React.FC<CertificateDetailsModalProps> = (
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '10px' }}>
             <button className="btn btn-secondary" onClick={() => downloadCertificateFile(cert)}>
               <Download size={15} />
-              <span>Tải File Chứng Thư (.crt.json)</span>
+              <span>Tải tệp chứng thư (.crt.json)</span>
             </button>
             {keyPair && (
               <button className="btn btn-outline" onClick={() => downloadPrivateKeyFile(cert, keyPair)}>
                 <Key size={15} />
-                <span>Tải Khoá Bí Mật (.key.json)</span>
+                <span>Tải khóa bí mật (.key.json)</span>
               </button>
             )}
             <button className="btn btn-primary" onClick={onClose}>

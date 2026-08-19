@@ -59,7 +59,6 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
     stampConfig.backgroundStyle || 'white'
   );
   const [stampColor, setStampColor] = useState(stampConfig.color || 'blue');
-  const [showQrCode, setShowQrCode] = useState(stampConfig.showQrCode === true);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -214,7 +213,6 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
       validToDate,
       backgroundStyle,
       color: stampColor as any,
-      showQrCode,
       handwrittenSignatureUrl: finalSignatureUrl,
     }));
 
@@ -250,10 +248,10 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
             </div>
             <div>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
-                Thiết Kế Chữ Ký & Mẫu Con Dấu Điện Tử
+                Thiết kế chữ ký & mẫu con dấu điện tử
               </h3>
               <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-                Khắc chữ ký tay, chọn nền trắng/trong suốt và xác lập thông tin chứng thực chuẩn văn bản pháp lý
+                Tạo chữ ký, chọn nền và xác nhận thông tin chứng thực
               </p>
             </div>
           </div>
@@ -269,21 +267,21 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
             onClick={() => setTab('draw')}
           >
             <PenTool size={15} />
-            <span>1. Vẽ Chữ Ký Tay</span>
+            <span>1. Vẽ chữ ký tay</span>
           </button>
           <button
             className={`btn btn-sm ${tab === 'upload' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setTab('upload')}
           >
             <Upload size={15} />
-            <span>2. Tải Ảnh Chữ Ký</span>
+            <span>2. Tải ảnh chữ ký</span>
           </button>
           <button
             className={`btn btn-sm ${tab === 'config' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setTab('config')}
           >
             <Sliders size={15} />
-            <span>3. Thông Tin & Hiệu Lực</span>
+            <span>3. Thông tin & hiệu lực</span>
           </button>
         </div>
 
@@ -390,9 +388,6 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
                 </div>
               )}
             </div>
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '6px' }}>
-              Nét ký sẽ tự động được làm mịn và tích hợp sắc nét vào con dấu điện tử nền trắng.
-            </div>
           </div>
         )}
 
@@ -416,7 +411,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
                 Bấm để chọn hoặc kéo thả ảnh chữ ký viết tay
               </div>
               <div style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginTop: '6px' }}>
-                Hỗ trợ định dạng PNG, JPG. Hệ thống tự động khử nền trắng để chữ ký trong suốt sắc nét.
+                Hỗ trợ định dạng PNG, JPG.
               </div>
             </div>
 
@@ -566,17 +561,6 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-              <input
-                type="checkbox"
-                id="show-qr-check"
-                checked={showQrCode}
-                onChange={(e) => setShowQrCode(e.target.checked)}
-              />
-              <label htmlFor="show-qr-check" style={{ fontSize: '0.84rem', cursor: 'pointer' }}>
-                Đính kèm mã QR tra cứu tính toàn vẹn chữ ký số trên con dấu
-              </label>
-            </div>
           </div>
         )}
 
@@ -587,7 +571,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
           </button>
           <button className="btn btn-primary" onClick={handleApply}>
             <Check size={16} />
-            <span>Áp Dụng Vào Mẫu Con Dấu</span>
+            <span>Áp dụng</span>
           </button>
         </div>
       </div>

@@ -92,7 +92,7 @@ export const NewCertificateModal: React.FC<NewCertificateModalProps> = ({
             </div>
             <div>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                Cấp Phát Chứng Thư Số Mới
+                Cấp phát chứng thư số mới
               </h3>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                 Bảo chứng và ký số bởi Cơ quan Chứng thực Gốc (Root CA)
@@ -198,9 +198,9 @@ export const NewCertificateModal: React.FC<NewCertificateModalProps> = ({
                 value={validityYears}
                 onChange={(e) => setValidityYears(Number(e.target.value))}
               >
-                <option value={1}>1 Năm</option>
-                <option value={2}>2 Năm (Mặc định)</option>
-                <option value={5}>5 Năm</option>
+                <option value={1}>1 năm</option>
+                <option value={2}>2 năm (Mặc định)</option>
+                <option value={5}>5 năm</option>
               </select>
             </div>
           </div>
@@ -212,7 +212,7 @@ export const NewCertificateModal: React.FC<NewCertificateModalProps> = ({
             </button>
             <button type="submit" className="btn btn-primary" disabled={isGenerating}>
               <Sparkles size={16} />
-              <span>{isGenerating ? 'Đang sinh cặp khóa & ký CA...' : 'Tạo & Cấp Phát Chứng Thư'}</span>
+              <span>{isGenerating ? 'Đang sinh cặp khóa & ký CA...' : 'Tạo & cấp phát chứng thư'}</span>
             </button>
           </div>
         </form>

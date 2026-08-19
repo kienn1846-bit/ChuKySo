@@ -31,6 +31,7 @@ import {
   createSignedDocumentCertificatePdf,
   createSignedPdfFromText,
   generateVisualStampDataUrl,
+  getStampInkColor,
   signPdfDocument,
 } from '../../services/pdf-service';
 import { downloadFile } from '../../services/storage-service';
@@ -78,7 +79,6 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
     xPercent: 65,
     yPercent: 12,
     color: 'blue',
-    showQrCode: false,
     style: 'handwritten-stamp',
     backgroundStyle: 'white',
     signatureType: 'draw',
@@ -704,7 +704,7 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
                       style={{ fontSize: '0.72rem', padding: '4px 6px' }}
                       onClick={() => setStampConfig({ ...stampConfig, xPercent: 65, yPercent: 12 })}
                     >
-                      Phải dưới (Chuẩn)
+                      Phải dưới
                     </button>
                     <button
                       type="button"
@@ -782,7 +782,7 @@ export const SignDocumentView: React.FC<SignDocumentViewProps> = ({
                           top: `${Math.max(10, Math.min(78, 100 - stampConfig.yPercent - 22))}%`,
                           transform: 'scale(0.85)',
                           transformOrigin: 'top left',
-                          border: isDraggingStamp ? '2px solid #06b6d4' : '1.5px solid #38bdf8',
+                          border: isDraggingStamp ? '2px dashed #06b6d4' : `1.5px solid ${getStampInkColor(stampConfig.color)}`,
                           borderRadius: '6px',
                           boxShadow: isDraggingStamp ? '0 8px 24px rgba(6, 182, 212, 0.4)' : '0 2px 10px rgba(0,0,0,0.15)',
                           background: stampConfig.backgroundStyle === 'transparent' ? 'rgba(255,255,255,0.85)' : '#ffffff',

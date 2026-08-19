@@ -111,67 +111,7 @@ export async function runCryptoSelfTests(): Promise<{
     });
   }
 
-  // Bài test 6: Mô phỏng tấn công lộ số ngẫu nhiên k (Reused k Attack)
-  {
-    const start = performance.now();
-    const keyPair = generateElGamalKeyPair(512, 'Demo Attack Key', true);
-    const p = BigInt(keyPair.publicKey.p);
-    const g = BigInt(keyPair.publicKey.g);
-    const x = BigInt(keyPair.privateKey.x);
-    const pMinus1 = p - 1n;
-
-    // Số k cố định
-    let fixedK = 65537n;
-    while (gcd(fixedK, pMinus1) !== 1n) {
-      fixedK += 2n;
-    }
-
-    const doc1Hash = await hashString('Thông điệp 1: Quyết định bổ nhiệm');
-    const doc2Hash = await hashString('Thông điệp 2: Khen thưởng sinh viên');
-
-    const sign1 = signElGamal(doc1Hash, keyPair.publicKey, keyPair.privateKey, fixedK);
-    const sign2 = signElGamal(doc2Hash, keyPair.publicKey, keyPair.privateKey, fixedK);
-
-    // Tấn công: s1 - s2 = k^-1 * (m1 - m2) mod (p-1)
-    const m1 = BigInt('0x' + doc1Hash) % pMinus1 || 1n;
-    const m2 = BigInt('0x' + doc2Hash) % pMinus1 || 1n;
-    const s1 = BigInt(sign1.signature.s);
-    const s2 = BigInt(sign2.signature.s);
-    const r = BigInt(sign1.signature.r);
-
-    let deltaM = (m1 - m2) % pMinus1;
-    if (deltaM < 0n) deltaM += pMinus1;
-
-    let deltaS = (s1 - s2) % pMinus1;
-    if (deltaS < 0n) deltaS += pMinus1;
-
-    let recoveredX = 0n;
-    let attackSuccess = false;
-
-    if (gcd(deltaS, pMinus1) === 1n) {
-      const deltaSInv = modInverse(deltaS, pMinus1);
-      const recoveredK = (deltaM * deltaSInv) % pMinus1;
-
-      if (gcd(r, pMinus1) === 1n) {
-        const rInv = modInverse(r, pMinus1);
-        let num = (m1 - s1 * recoveredK) % pMinus1;
-        if (num < 0n) num += pMinus1;
-        recoveredX = (num * rInv) % pMinus1;
-        attackSuccess = recoveredX === x;
-      }
-    }
-
-    results.push({
-      testName: 'Tấn công Mật mã: Tấn công tái sử dụng số k (Reused-k Attack)',
-      passed: true,
-      message: attackSuccess
-        ? `Khôi phục thành công khóa bí mật x từ 2 chữ ký dùng chung k!`
-        : `Mô phỏng tấn công an toàn hoàn tất.`,
-      durationMs: performance.now() - start,
-    });
-  }
-
-  // Bài test 7: Mã hóa và Giải mã ElGamal
+  // Bài test 6: Mã hóa và Giải mã ElGamal
   {
     const start = performance.now();
     const keyPair = generateElGamalKeyPair(512, 'Test Encrypt Key', true);

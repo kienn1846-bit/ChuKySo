@@ -25,4 +25,6 @@ dist-ssr
 
 # AI Agent config (not part of the project)
 .agents/
+.baoyu-skills/
+README-vi/
 skills-lock.json

@@ -80,7 +80,6 @@ export interface VisualStampConfig {
   xPercent: number; // 0 - 100% so với chiều rộng trang PDF
   yPercent: number; // 0 - 100% so với chiều cao trang PDF
   color: 'crimson' | 'blue' | 'emerald' | 'amber' | 'slate';
-  showQrCode: boolean;
   style: 'official-seal' | 'handwritten-stamp' | 'modern-badge' | 'minimal-tag';
   backgroundStyle: 'white' | 'transparent' | 'tinted';
   signatureType: 'draw' | 'upload' | 'calligraphy' | 'seal-only';

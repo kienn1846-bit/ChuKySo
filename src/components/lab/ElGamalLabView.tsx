@@ -16,7 +16,6 @@ import {
 } from '../../crypto/bigint-utils';
 import { hashString } from '../../crypto/hash';
 import { generateElGamalKeyPair, signElGamal, verifyElGamal } from '../../crypto/elgamal';
-import { simulateReusedKAttack, ReusedKAttackResult, DLP_COMPLEXITY_DATA } from '../../services/attack-sim-service';
 import { EuclidStep, MathStepLog } from '../../types';
 import { MathView } from '../common/MathView';
 
@@ -35,6 +34,63 @@ interface PrimitiveRootFactorStep {
   result: string;
   isPassed: boolean;
 }
+
+const DLP_COMPLEXITY_DATA = [
+  {
+    bitLength: 16,
+    modulusSize: '~65,536',
+    bruteForceTime: '< 1 ms',
+    babyStepGiantStep: '< 1 ms',
+    indexCalculus: '< 1 ms',
+    securityStatus: 'Bẻ khóa tức thì (Demo)',
+    badgeColor: 'danger',
+  },
+  {
+    bitLength: 64,
+    modulusSize: '~1.8 × 10¹⁹',
+    bruteForceTime: 'Vài ngày',
+    babyStepGiantStep: '< 1 giây',
+    indexCalculus: '< 1 giây',
+    securityStatus: 'Không an toàn',
+    badgeColor: 'danger',
+  },
+  {
+    bitLength: 128,
+    modulusSize: '~3.4 × 10³⁸',
+    bruteForceTime: 'Hàng triệu năm',
+    babyStepGiantStep: 'Vài giờ',
+    indexCalculus: 'Vài phút',
+    securityStatus: 'Yếu',
+    badgeColor: 'warning',
+  },
+  {
+    bitLength: 512,
+    modulusSize: '~1.3 × 10¹⁵⁴',
+    bruteForceTime: 'Bất khả thi',
+    babyStepGiantStep: '> 10¹⁸ năm',
+    indexCalculus: 'Vài ngày - tuần (Cụm máy chủ)',
+    securityStatus: 'Thực nghiệm',
+    badgeColor: 'warning',
+  },
+  {
+    bitLength: 1024,
+    modulusSize: '~1.8 × 10³⁰⁸',
+    bruteForceTime: 'Bất khả thi',
+    babyStepGiantStep: 'Bất khả thi',
+    indexCalculus: 'Vài năm (Siêu máy tính)',
+    securityStatus: 'Tiêu chuẩn cũ (Legacy)',
+    badgeColor: 'info',
+  },
+  {
+    bitLength: 2048,
+    modulusSize: '~3.2 × 10⁶¹⁶',
+    bruteForceTime: 'Bất khả thi',
+    babyStepGiantStep: 'Bất khả thi',
+    indexCalculus: 'Hàng triệu năm (NIST Standard)',
+    securityStatus: 'An toàn thương mại',
+    badgeColor: 'success',
+  },
+];
 
 export const ElGamalLabView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'euclid' | 'modPow' | 'primitiveRoot' | 'stepByStep' | 'proof'>('euclid');
@@ -97,10 +153,7 @@ export const ElGamalLabView: React.FC = () => {
   const [stepLogs, setStepLogs] = useState<MathStepLog[]>([]);
   const [verifyLogs, setVerifyLogs] = useState<MathStepLog[]>([]);
 
-  const [attackDoc1, setAttackDoc1] = useState('Văn bản 1: Quyết định khen thưởng');
-  const [attackDoc2, setAttackDoc2] = useState('Văn bản 2: Bổ nhiệm cán bộ');
-  const [attackResult, setAttackResult] = useState<ReusedKAttackResult | null>(null);
-  const [isAttacking, setIsAttacking] = useState(false);
+
 
   // Initial runs
   useEffect(() => {
@@ -395,31 +448,31 @@ export const ElGamalLabView: React.FC = () => {
             className={`btn btn-sm ${activeTab === 'euclid' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setActiveTab('euclid')}
           >
-            Euclid Mở Rộng
+            Euclid mở rộng
           </button>
           <button
             className={`btn btn-sm ${activeTab === 'modPow' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setActiveTab('modPow')}
           >
-            Lũy Thừa Modulo
+            Lũy thừa modulo
           </button>
           <button
             className={`btn btn-sm ${activeTab === 'primitiveRoot' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setActiveTab('primitiveRoot')}
           >
-            Phần Tử Sinh
+            Phần tử sinh
           </button>
           <button
             className={`btn btn-sm ${activeTab === 'stepByStep' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setActiveTab('stepByStep')}
           >
-            Minh Họa Từng Bước Ký
+            Minh họa từng bước ký
           </button>
           <button
             className={`btn btn-sm ${activeTab === 'proof' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setActiveTab('proof')}
           >
-            Chứng Minh Toán Học
+            Chứng minh toán học
           </button>
         </div>
       </div>
@@ -430,7 +483,7 @@ export const ElGamalLabView: React.FC = () => {
           {/* Left Form */}
           <div className="card">
             <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
-              TÍNH NGHỊCH ĐẢO MODULO k⁻¹ MOD (p - 1)
+              Tính nghịch đảo modulo k⁻¹ mod (p - 1)
             </h3>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: '1.5' }}>
               Thuật toán Euclid mở rộng giải phương trình nghiệm nguyên: <span style={{ color: 'var(--accent-cyan)' }}>a · x + b · y = gcd(a, b)</span>.
@@ -464,7 +517,7 @@ export const ElGamalLabView: React.FC = () => {
                 style={{ width: '100%', marginTop: '6px', justifyContent: 'center' }}
                 onClick={() => runEuclidCalc()}
               >
-                Chạy Thuật Toán Euclid Mở Rộng
+                Chạy thuật toán Euclid mở rộng
               </button>
             </div>
           </div>
@@ -481,7 +534,7 @@ export const ElGamalLabView: React.FC = () => {
             }}
           >
             <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.5px' }}>
-              BẢNG VẾT TỪNG BƯỚC
+              Bảng tính từng bước
             </div>
 
             {euclidResult && (
@@ -494,7 +547,7 @@ export const ElGamalLabView: React.FC = () => {
                 </div>
 
                 <div style={{ background: '#0f172a', padding: '12px 14px', borderRadius: '8px', border: '1px solid #1e293b' }}>
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase' }}>HỆ SỐ BÉZOUT (X, Y):</div>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase' }}>HỆ SỐ KHỞI TẠO (X, Y):</div>
                   <div style={{ fontSize: '1rem', fontWeight: 700, color: '#38bdf8', marginTop: '4px' }}>
                     x = {euclidResult.x}, y = {euclidResult.y}
                   </div>
@@ -536,10 +589,10 @@ export const ElGamalLabView: React.FC = () => {
           {/* Left Form */}
           <div className="card">
             <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
-              TÍNH LŨY THỪA MODULO a^b MOD n
+              Tính lũy thừa modulo a^b mod n
             </h3>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: '1.5' }}>
-              Giải thuật Bình phương và Nhân (Square-and-Multiply) tính nhanh lũy thừa modulo với độ phức tạp O(log b).
+              Giải thuật bình phương và nhân (Square-and-Multiply) tính nhanh lũy thừa modulo với độ phức tạp O(log b).
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -581,7 +634,7 @@ export const ElGamalLabView: React.FC = () => {
                 style={{ width: '100%', marginTop: '6px', justifyContent: 'center' }}
                 onClick={() => runModPowCalc()}
               >
-                Tính Lũy Thừa Modulo
+                Tính lũy thừa modulo
               </button>
             </div>
           </div>
@@ -598,7 +651,7 @@ export const ElGamalLabView: React.FC = () => {
             }}
           >
             <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.5px' }}>
-              BẢNG VẾT BÌNH PHƯƠNG VÀ NHÂN
+              Bảng tính bình phương và nhân
             </div>
 
             {powResult && (
@@ -663,7 +716,7 @@ export const ElGamalLabView: React.FC = () => {
           {/* Left Form */}
           <div className="card">
             <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
-              KIỂM TRA PHẦN TỬ SINH g TRONG TRƯỜNG Z_p*
+              Kiểm tra phần tử sinh g trong trường Z_p*
             </h3>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: '1.5' }}>
               Thẩm định xem g có phải phần tử sinh của nhóm xích Z_p* bằng cách thử mọi ước nguyên tố q của (p-1).
@@ -697,7 +750,7 @@ export const ElGamalLabView: React.FC = () => {
                 style={{ width: '100%', marginTop: '6px', justifyContent: 'center' }}
                 onClick={() => runPrimitiveRootCalc()}
               >
-                Kiểm Tra Phần Tử Sinh g
+                Kiểm tra phần tử sinh g
               </button>
             </div>
           </div>
@@ -714,7 +767,7 @@ export const ElGamalLabView: React.FC = () => {
             }}
           >
             <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.5px' }}>
-              BẢNG CẤP PHẦN TỬ
+              Bảng cấp phần tử
             </div>
 
             {primResult && (
@@ -903,7 +956,7 @@ export const ElGamalLabView: React.FC = () => {
           <div className="card">
             <div className="card-header">
               <h3 className="card-title">
-                <span>Thử nghiệm & Thẩm định Tham số Toán học Tùy chỉnh (Custom Input Validator)</span>
+                <span>Thử nghiệm & thẩm định tham số toán học tùy chỉnh (Custom input validator)</span>
               </h3>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 <button
@@ -913,7 +966,7 @@ export const ElGamalLabView: React.FC = () => {
                     handleValidateCustomParams('23', '5', '6', '7', '14', '', '');
                   }}
                 >
-                  Mẫu HỢP LỆ (p=23)
+                  Mẫu hợp lệ (p=23)
                 </button>
                 <button
                   className="btn btn-secondary btn-sm"
@@ -963,7 +1016,7 @@ export const ElGamalLabView: React.FC = () => {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-end' }}>
                   <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => handleValidateCustomParams()}>
-                    <Play size={16} /> Kiểm tra & Thẩm định
+                    <Play size={16} /> Kiểm tra & thẩm định
                   </button>
                 </div>
               </div>
@@ -1034,18 +1087,18 @@ export const ElGamalLabView: React.FC = () => {
           <div className="card">
             <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '12px' }}>
               <Cpu size={18} style={{ display: 'inline', marginRight: '6px' }} />
-              Độ phức tạp bài toán Logarithm Rời Rạc (DLP)
+              Độ phức tạp bài toán Logarithm rời rạc (DLP)
             </h3>
             <div className="table-responsive">
               <table className="table-custom">
                 <thead>
                   <tr>
-                    <th>Cỡ Khoá</th>
+                    <th>Cỡ khóa</th>
                     <th>Modulus (p)</th>
-                    <th>Vét Cạn (Brute Force)</th>
-                    <th>Bước Nhỏ - Bước Lớn (Baby-Step Giant-Step) O(√p)</th>
-                    <th>Giải Tích Chỉ Số (Index Calculus / NFS)</th>
-                    <th>Đánh Giá An Toàn</th>
+                    <th>Vét cạn (Brute force)</th>
+                    <th>Bước nhỏ - bước lớn (Baby-step giant-step) O(√p)</th>
+                    <th>Giải tích chỉ số (Index calculus / NFS)</th>
+                    <th>Đánh giá an toàn</th>
                   </tr>
                 </thead>
                 <tbody>

@@ -185,7 +185,7 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
         },
         checks: [
           {
-            name: 'Lớp 1: Tính toàn vẹn văn bản (SHA-256 Integrity)',
+            name: 'Lớp 1: Tính toàn vẹn văn bản',
             status: integrityValid ? 'pass' : 'fail',
             message: integrityValid
               ? 'Mã băm khớp 100% — Tài liệu nguyên bản, không bị thay đổi bất kỳ ký tự nào.'
@@ -193,7 +193,7 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
             detail: `Gốc: ${expectedDocHash.slice(0, 20)}... | Hiện tại: ${calculatedDocHash.slice(0, 20)}...`,
           },
           {
-            name: 'Lớp 2: Xác thực toán học ElGamal (Mathematical Authenticity)',
+            name: 'Lớp 2: Xác thực toán học ElGamal',
             status: mathResult.isValid ? 'pass' : 'fail',
             message: mathResult.isValid
               ? 'Phương trình v1 ≡ v2 (mod p) thoả mãn — Chữ ký toán học chính xác 100%.'
@@ -201,7 +201,7 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
             detail: `v1 = ${mathResult.v1.slice(0, 24)}... | v2 = ${mathResult.v2.slice(0, 24)}...`,
           },
           {
-            name: 'Lớp 3: Độ tin cậy Chứng thư số & CA (PKI Trust Chain)',
+            name: 'Lớp 3: Độ tin cậy chứng thư số & CA',
             status: certResult.isValid ? 'pass' : certResult.isExpired ? 'warning' : 'fail',
             message: certResult.isValid
               ? `Chứng thư số hợp lệ, được cấp bởi ${cert.issuer.commonName} và còn hạn sử dụng.`
@@ -252,7 +252,7 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
       <div>
         <h2 style={{ fontSize: '1.55rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <SearchCheck size={26} color="var(--brand-blue)" />
-          <span>Trung Tâm Xác Thực & Thẩm Định Chữ Ký Số (Audit & Verification Center)</span>
+          <span>Xác thực & thẩm định chữ ký số</span>
         </h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginTop: '4px' }}>
           Hệ thống kiểm toán mật mã 3 lớp: Toàn vẹn mã băm SHA-256, Thẩm định phương trình đồng dư ElGamal <MathView math="v_1 \equiv v_2 \pmod p" /> và Xác thực xích chứng thư PKI Root CA.
@@ -438,7 +438,7 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <button className="btn btn-primary btn-sm" onClick={handleExportReportPdf} style={{ fontSize: '0.82rem' }}>
                     <Download size={14} />
-                    <span>Xuất Biên Bản PDF</span>
+                    <span>Xuất biên bản PDF</span>
                   </button>
                   <span className={`badge ${verificationResult.isValid ? 'badge-success' : 'badge-danger'}`} style={{ fontSize: '0.76rem' }}>
                     {verificationResult.isValid ? 'Đạt 3/3 lớp' : 'Không đạt'}
@@ -480,7 +480,7 @@ export const VerifySignatureView: React.FC<VerifySignatureViewProps> = ({
                 >
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Layers size={15} color="var(--accent-indigo)" />
-                    <span>Chi Tiết Đối Chiếu Phương Trình Đồng Dư ElGamal</span>
+                    <span>Chi tiết đối chiếu phương trình đồng dư ElGamal</span>
                   </span>
                   {showMathDetails ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                 </button>
