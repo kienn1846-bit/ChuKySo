@@ -1,5 +1,5 @@
 # SignWCert - Hệ Thống Ký Số Văn Bản Điện Tử Hệ Mật ElGamal & Chứng Thực PKI
-> **Đề tài Bài Tập Lớn / Đồ Án Cuối Kỳ Môn An Toàn Thông Tin & Mật Mã Học**
+> **Bài tập lớn môn An toàn bảo mật thông tin**
 
 ---
 
@@ -105,19 +105,3 @@ signwcert/
 │   └── main.tsx                    # Điểm khởi chạy React
 └── README.md
 ```
-
----
-
-## 🎓 Câu Hỏi Phản Biện Hội Đồng Chấm Thi
-Trong tab **"Phòng TN Toán"** (Lab) của ứng dụng, hệ thống tích hợp sẵn các mô phỏng để trả lời 4 chủ đề phản biện cốt lõi:
-- *Tại sao cần số nguyên tố an toàn để chống tấn công Pohlig-Hellman?*
-- *Phân tích lỗ hổng tái sử dụng số ngẫu nhiên $k$ (Vụ tấn công kinh điển Sony PlayStation 3).*
-- *So sánh chi phí tính toán và kích thước chữ ký giữa ElGamal và RSA.*
-- *Hiệu ứng tuyết lở (Avalanche Effect) của hàm băm SHA-256 trong chống giả mạo.*
-
----
-
-## 👨‍💻 Tác Giả & Bản Quyền
-- **Đề tài**: Ứng dụng Hệ mật ElGamal trong Ký số Văn bản & Quản lý Chứng thư số.
-- **Môn học**: An Toàn Thông Tin & Mật Mã Học.
-- **Năm thực hiện**: 2026.
