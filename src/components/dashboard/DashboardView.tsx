@@ -55,7 +55,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div style={{ maxWidth: '800px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <span className="badge badge-cyan">
-              <Sparkles size={13} /> Bài tập lớn / Đồ án Mật mã học & ATTT
+              <Sparkles size={13} /> Bài tập lớn môn An toàn bảo mật thông tin
             </span>
             <span className="badge badge-indigo">Chuẩn PKI & ElGamal-2048</span>
           </div>
