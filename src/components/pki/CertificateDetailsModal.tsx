@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Award,
   X,
@@ -10,6 +10,9 @@ import {
   Mail,
   User,
   Fingerprint,
+  Lock,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { DigitalCertificate, ElGamalKeyPair } from '../../types';
 import { downloadCertificateFile, downloadPrivateKeyFile } from '../../services/storage-service';
@@ -26,6 +29,7 @@ export const CertificateDetailsModal: React.FC<CertificateDetailsModalProps> = (
   keyPair,
   onClose,
 }) => {
+  const [showPrivateKey, setShowPrivateKey] = useState(false);
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '820px' }}>
@@ -107,10 +111,10 @@ export const CertificateDetailsModal: React.FC<CertificateDetailsModalProps> = (
             </div>
           </div>
 
-          {/* Cryptographic Public Key Info */}
+          {/* Cryptographic Public & Private Key Info */}
           <div style={{ background: 'var(--bg-input)', padding: '18px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
             <div style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem' }}>
-              <Key size={16} color="var(--brand-blue)" /> Thông tin khóa công khai ElGamal ({cert.publicKey.bitLength || 1024}-bit)
+              <Key size={16} color="var(--brand-blue)" /> Thông tin khóa mật mã ElGamal ({cert.publicKey.bitLength || 1024}-bit)
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.84rem' }}>
@@ -132,6 +136,42 @@ export const CertificateDetailsModal: React.FC<CertificateDetailsModalProps> = (
                   {cert.publicKey.y}
                 </div>
               </div>
+              {keyPair?.privateKey?.x && (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '2px' }}>
+                    <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Lock size={14} color="#f59e0b" />
+                      <span>Khóa bí mật (<MathView math="x" />):</span>
+                    </span>
+                    <button
+                      type="button"
+                      className="btn btn-outline btn-xs"
+                      onClick={() => setShowPrivateKey(!showPrivateKey)}
+                      style={{ padding: '2px 8px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '5px' }}
+                    >
+                      {showPrivateKey ? <EyeOff size={13} /> : <Eye size={13} />}
+                      <span>{showPrivateKey ? 'Ẩn khóa bí mật' : 'Hiện khóa bí mật'}</span>
+                    </button>
+                  </div>
+                  <div
+                    className="code-block"
+                    style={{
+                      marginTop: '4px',
+                      padding: '8px',
+                      fontSize: '0.76rem',
+                      fontFamily: 'var(--font-mono)',
+                      color: showPrivateKey ? '#38bdf8' : 'var(--text-dim)',
+                      letterSpacing: showPrivateKey ? 'normal' : '2px',
+                      userSelect: showPrivateKey ? 'all' : 'none',
+                      border: showPrivateKey ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid var(--border-subtle)',
+                      background: showPrivateKey ? 'rgba(15, 23, 42, 0.85)' : 'var(--bg-card)',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    {showPrivateKey ? keyPair.privateKey.x : '••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••'}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

@@ -28,3 +28,11 @@ dist-ssr
 .baoyu-skills/
 README-vi/
 skills-lock.json
+
+# Scripts & Virtual environments
+scripts/
+.venv/
+.python-version
+pyproject.toml
+uv.lock
+src/signwcert/

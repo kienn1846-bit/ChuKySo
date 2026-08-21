@@ -351,7 +351,7 @@ export const CertificateManagerView: React.FC<CertificateManagerViewProps> = ({
       {selectedCertForModal && (
         <CertificateDetailsModal
           cert={selectedCertForModal}
-          keyPair={keyPairs[selectedCertForModal.id]}
+          keyPair={keyPairs[selectedCertForModal.id] || (selectedCertForModal.id === rootCert.id ? rootKeyPair : undefined)}
           onClose={() => setSelectedCertForModal(null)}
         />
       )}
